@@ -15,6 +15,7 @@ public class ClickGUI {
     private Theme theme;
     private float animationProgress = 0f;
     private boolean imGuiAvailable = false;
+    private int renderCount = 0;
     
     private ClickGUI() {
         System.out.println("[ClickGUI] Creating instance...");
@@ -34,11 +35,17 @@ public class ClickGUI {
     
     // Called from C++ wglSwapBuffers hook
     public void render() {
+        // Always print the first 5 times so we know it's being called
+        if (renderCount < 5) {
+            System.out.println("[ClickGUI] render() called #" + renderCount + ", open=" + open);
+            renderCount++;
+        }
+        
         if (!open) {
-            // Still call this occasionally to check ImGui status
+            // Still check ImGui status occasionally
             if (!imGuiAvailable) {
                 imGuiAvailable = isImGuiAvailable();
-                if (imGuiAvailable) {
+                if (imGuiAvailable && renderCount < 5) {
                     System.out.println("[ClickGUI] ImGui now available!");
                 }
             }
@@ -48,48 +55,49 @@ public class ClickGUI {
         try {
             // Update ImGui status
             imGuiAvailable = isImGuiAvailable();
+            if (renderCount < 5) {
+                System.out.println("[ClickGUI] ImGui available: " + imGuiAvailable);
+            }
             
             if (!imGuiAvailable) {
-                System.out.println("[ClickGUI] render() called but ImGui not available");
+                if (renderCount < 5) {
+                    System.out.println("[ClickGUI] ImGui not available, skipping render");
+                }
                 return;
             }
             
-            // Animation
-            if (animationProgress < 1f) {
-                animationProgress = Math.min(1f, animationProgress + 0.05f);
-            }
-            
-            float alpha = animationProgress;
-            
-            // === ACTUAL IMGUI RENDERING ===
-            nSetNextWindowSize(400, 300);
+            // === RENDER A SIMPLE TEST WINDOW ===
+            nSetNextWindowSize(300, 200);
             nSetNextWindowPos(50, 50);
-            nSetNextWindowBgAlpha(alpha);
             
             nBegin("Crucifix Client", 0);
+            nText("ClickGUI is working!");
+            nSeparator();
+            nText("Press RSHIFT to close");
+            nSeparator();
+            nText("Render count: " + renderCount);
+            nEnd();
             
-            nText("ClickGUI is open!");
+            // === RENDER DEBUG MODULE STATUS WINDOW ===
+            nSetNextWindowSize(350, 400);
+            nSetNextWindowPos(400, 50);
+            
+            nBegin("Module Status Debug", 0);
+            nText("Total Modules: " + ModuleManager.getInstance().getModules().size());
             nSeparator();
             
-            // Show all modules from all categories
-            nText("Modules: " + ModuleManager.getInstance().getModules().size());
-            nSeparator();
-            
-            // Draw modules by category
-            for (Category category : Category.values()) {
-                String categoryName = category.toString();
-                if (nCollapsingHeader(categoryName)) {
-                    for (Module module : ModuleManager.getInstance().getModules()) {
-                        if (module.getCategory() == category) {
-                            boolean enabled = module.isEnabled();
-                            if (nCheckbox(module.getName(), enabled)) {
-                                module.toggle();
-                            }
-                        }
-                    }
+            int enabledCount = 0;
+            for (Module module : ModuleManager.getInstance().getModules()) {
+                if (module.isEnabled()) {
+                    enabledCount++;
+                    nText("[ENABLED] " + module.getName());
+                } else {
+                    nText("[DISABLED] " + module.getName());
                 }
             }
             
+            nSeparator();
+            nText("Enabled: " + enabledCount + " / " + ModuleManager.getInstance().getModules().size());
             nEnd();
             
         } catch (Exception e) {

@@ -25,7 +25,7 @@ namespace CrucifixInjector
         static extern IntPtr GetProcAddress(IntPtr hModule, string lpProcName);
 
         [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Auto)]
-        static extern IntPtr LoadLibraryA(string lpFileName);
+        static extern IntPtr GetModuleHandle(string lpModuleName);
 
         [DllImport("kernel32.dll", SetLastError = true)]
         static extern bool CloseHandle(IntPtr hObject);
@@ -306,11 +306,12 @@ namespace CrucifixInjector
 
                 Console.WriteLine("[+] Process opened successfully");
 
-                // Step 2: Get LoadLibraryA address
-                hKernel32 = LoadLibraryA("kernel32.dll");
+                // Step 2: Get LoadLibraryA address from kernel32.dll (already loaded)
+                hKernel32 = GetModuleHandle("kernel32.dll");
                 if (hKernel32 == IntPtr.Zero)
                 {
-                    Console.WriteLine("[!] Failed to load kernel32.dll");
+                    uint error = GetLastError();
+                    Console.WriteLine($"[!] Failed to get kernel32.dll handle! Error: {error}");
                     return false;
                 }
 

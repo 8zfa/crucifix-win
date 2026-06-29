@@ -489,6 +489,8 @@ void FirePacketEvent(void* packet, bool cancelled)
 // Native method implementation for ClickGUI.isImGuiAvailable()
 extern bool g_ImGuiAvailable;
 
+extern "C" {
+
 JNIEXPORT jboolean JNICALL Java_com_crucifix_client_gui_ClickGUI_isImGuiAvailable(JNIEnv* env, jobject obj) {
     printf("[JNI] isImGuiAvailable() called - g_ImGuiAvailable = %d\n", g_ImGuiAvailable);
     LogDebug(("isImGuiAvailable() called - returning " + std::to_string(g_ImGuiAvailable)).c_str());
@@ -569,6 +571,8 @@ JNIEXPORT void JNICALL Java_com_crucifix_client_gui_ClickGUI_nSetNextWindowPos(J
 JNIEXPORT void JNICALL Java_com_crucifix_client_gui_ClickGUI_nSetNextWindowBgAlpha(JNIEnv* env, jobject obj, jfloat alpha) {
     ImGui::SetNextWindowBgAlpha(alpha);
 }
+
+} // extern "C"
 
 // Register all ClickGUI native methods
 void RegisterClickGUINatives(JNIEnv* env) {

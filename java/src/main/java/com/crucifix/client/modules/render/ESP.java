@@ -11,8 +11,8 @@ import com.crucifix.client.modules.Setting;
  */
 public class ESP extends Module {
     
-    public ESP() {
-        super("ESP", "Draws boxes around entities", Category.RENDER, 69); // E key
+    public ESP(String name, Category category, Object mc) {
+        super(name, category, mc);
         
         addSetting(Setting.createToggle("Players", true));
         addSetting(Setting.createToggle("Mobs", false));

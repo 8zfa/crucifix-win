@@ -11,8 +11,9 @@ import com.crucifix.client.modules.Setting;
  */
 public class BHop extends Module {
     
-    public BHop() {
-        super("BHop", "Bunny hop for increased speed", Category.MOVEMENT, 0);
+    public BHop(String name, Category category, Object mc) {
+        super(name, category, mc);
+        ;
         
         addSetting(Setting.createSlider("Speed", 0.3, 0.1, 1.0, 0.05));
     }
@@ -43,4 +44,5 @@ public class BHop extends Module {
         }
     }
 }
+
 

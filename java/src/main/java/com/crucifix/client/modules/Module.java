@@ -13,99 +13,111 @@ import java.util.Map;
  * Base class for all modules - uses LunarBridge for Minecraft access
  */
 public abstract class Module {
-    private final String name;
-    private final String description;
-    private final Category category;
-    private int keybind;
+    private String name;
+    private Category category;
+    private int keyBind;
     private boolean enabled;
+    private Object minecraftInstance;
+    private Object playerInstance;
+    private Object worldInstance;
     
-    private final Map<String, Setting<?>> settings;
-    private final EventBus eventBus;
-    
-    public Module(String name, String description, Category category, int defaultKeybind) {
+    public Module(String name, Category category, Object mc) {
         this.name = name;
-        this.description = description;
         this.category = category;
-        this.keybind = defaultKeybind;
-        this.enabled = false;
-        this.settings = new HashMap<>();
-        this.eventBus = Crucifix.getInstance().getEventBus();
+        this.minecraftInstance = mc;
+        this.keyBind = -1;
+        
+        // Cache player and world using reflection
+        if (mc != null) {
+            try {
+                // Get thePlayer field
+                Class<?> mcClass = mc.getClass();
+                java.lang.reflect.Field playerField = mcClass.getField("thePlayer");
+                playerInstance = playerField.get(mc);
+                
+                java.lang.reflect.Field worldField = mcClass.getField("theWorld");
+                worldInstance = worldField.get(mc);
+                
+                System.out.println("[Module] " + name + " - Got player: " + playerInstance);
+            } catch (Exception e) {
+                System.out.println("[Module] " + name + " - Could not get player: " + e.getMessage());
+            }
+        }
     }
     
-    /**
-     * Get the Minecraft instance via LunarBridge
-     */
-    protected Object getMinecraft() {
-        return LunarBridge.getMinecraft();
-    }
-    
-    /**
-     * Get the player instance via LunarBridge
-     */
+    // Helper methods for subclasses
     protected Object getPlayer() {
-        return LunarBridge.getPlayer();
+        if (playerInstance == null && minecraftInstance != null) {
+            try {
+                java.lang.reflect.Field playerField = minecraftInstance.getClass().getField("thePlayer");
+                playerInstance = playerField.get(minecraftInstance);
+            } catch (Exception e) {
+                System.out.println("[Module] " + name + " - Could not refresh player: " + e.getMessage());
+            }
+        }
+        return playerInstance;
     }
     
-    /**
-     * Get the world instance via LunarBridge
-     */
     protected Object getWorld() {
-        return LunarBridge.getWorld();
+        if (worldInstance == null && minecraftInstance != null) {
+            try {
+                java.lang.reflect.Field worldField = minecraftInstance.getClass().getField("theWorld");
+                worldInstance = worldField.get(minecraftInstance);
+            } catch (Exception e) {
+                System.out.println("[Module] " + name + " - Could not refresh world: " + e.getMessage());
+            }
+        }
+        return worldInstance;
     }
     
-    /**
-     * Get a field value from an object
-     */
-    protected Object getField(Object obj, String fieldName) {
-        return LunarBridge.getField(obj, fieldName);
+    // Reflection helpers
+    protected Object getFieldValue(Object target, String fieldName) {
+        try {
+            java.lang.reflect.Field field = target.getClass().getField(fieldName);
+            field.setAccessible(true);
+            return field.get(target);
+        } catch (Exception e) {
+            try {
+                java.lang.reflect.Field field = target.getClass().getDeclaredField(fieldName);
+                field.setAccessible(true);
+                return field.get(target);
+            } catch (Exception ex) {
+                System.out.println("[Module] Could not get field " + fieldName + ": " + ex.getMessage());
+                return null;
+            }
+        }
     }
     
-    /**
-     * Set a field value on an object
-     */
-    protected boolean setField(Object obj, String fieldName, Object value) {
-        return LunarBridge.setField(obj, fieldName, value);
+    protected void setFieldValue(Object target, String fieldName, Object value) {
+        try {
+            java.lang.reflect.Field field = target.getClass().getField(fieldName);
+            field.setAccessible(true);
+            field.set(target, value);
+        } catch (Exception e) {
+            try {
+                java.lang.reflect.Field field = target.getClass().getDeclaredField(fieldName);
+                field.setAccessible(true);
+                field.set(target, value);
+            } catch (Exception ex) {
+                System.out.println("[Module] Could not set field " + fieldName + ": " + ex.getMessage());
+            }
+        }
     }
     
-    /**
-     * Call a method on an object
-     */
-    protected Object callMethod(Object obj, String methodName, Class<?>[] paramTypes, Object... args) {
-        return LunarBridge.callMethod(obj, methodName, paramTypes, args);
-    }
-    
-    /**
-     * Called when the module is enabled
-     */
-    public void onEnable() {
-        eventBus.register(this);
-    }
-    
-    /**
-     * Called when the module is disabled
-     */
-    public void onDisable() {
-        eventBus.unregister(this);
-    }
-    
-    /**
-     * Called every tick when the module is enabled
-     */
+    // Override these
+    public void onEnable() {}
+    public void onDisable() {}
     public void onUpdate() {}
+    public void onRender() {}
+    public void onKeyPress(int key) {}
     
-    /**
-     * Called during rendering when the module is enabled
-     */
-    public void onRender(float partialTicks) {}
+    // Getters/Setters
+    public String getName() { return name; }
+    public Category getCategory() { return category; }
+    public int getKeyBind() { return keyBind; }
+    public void setKeyBind(int keyBind) { this.keyBind = keyBind; }
+    public boolean isEnabled() { return enabled; }
     
-    /**
-     * Called when a key is pressed
-     */
-    public void onKeyPress(int keyCode) {}
-    
-    /**
-     * Toggle the module
-     */
     public void toggle() {
         if (enabled) {
             disable();
@@ -114,76 +126,44 @@ public abstract class Module {
         }
     }
     
-    /**
-     * Enable the module
-     */
     public void enable() {
-        if (!enabled) {
-            enabled = true;
-            onEnable();
-            System.out.println("[Module] Enabled: " + name);
-        }
+        enabled = true;
+        onEnable();
+        System.out.println("[Module] " + name + " enabled");
     }
     
-    /**
-     * Disable the module
-     */
     public void disable() {
-        if (enabled) {
-            enabled = false;
-            onDisable();
-            System.out.println("[Module] Disabled: " + name);
-        }
+        enabled = false;
+        onDisable();
+        System.out.println("[Module] " + name + " disabled");
     }
     
-    /**
-     * Add a setting to this module
-     */
+    protected boolean isInGame() {
+        Object player = getPlayer();
+        Object world = getWorld();
+        return player != null && world != null;
+    }
+    
+    // Legacy compatibility
+    private final String description = "";
+    private final Map<String, Setting<?>> settings = new HashMap<>();
+    private final EventBus eventBus = Crucifix.getInstance().getEventBus();
+    
     protected Setting<?> addSetting(Setting<?> setting) {
         settings.put(setting.getName(), setting);
         return setting;
     }
     
-    /**
-     * Get a setting by name
-     */
     @SuppressWarnings("unchecked")
     public <T> Setting<T> getSetting(String name) {
         return (Setting<T>) settings.get(name);
     }
     
-    /**
-     * Get all settings
-     */
     public List<Setting<?>> getSettings() {
         return new ArrayList<>(settings.values());
     }
     
-    // Getters and setters
-    public String getName() {
-        return name;
-    }
-    
-    public String getDescription() {
-        return description;
-    }
-    
-    public Category getCategory() {
-        return category;
-    }
-    
-    public int getKeybind() {
-        return keybind;
-    }
-    
-    public void setKeybind(int keybind) {
-        this.keybind = keybind;
-    }
-    
-    public boolean isEnabled() {
-        return enabled;
-    }
-    
+    public String getDescription() { return description; }
     public void setEnabled(boolean enabled) {
         if (enabled && !this.enabled) {
             enable();

@@ -11,8 +11,9 @@ import com.crucifix.client.modules.Setting;
  */
 public class RodAura extends Module {
     
-    public RodAura() {
-        super("RodAura", "Automatically uses fishing rod for combos", Category.COMBAT, 0);
+    public RodAura(String name, Category category, Object mc) {
+        super(name, category, mc);
+        ;
         
         addSetting(Setting.createSlider("Range", 4.5, 1.0, 10.0, 0.1));
         addSetting(Setting.createSlider("Delay", 200.0, 0.0, 1000.0, 50.0));
@@ -40,4 +41,5 @@ public class RodAura extends Module {
         }
     }
 }
+
 

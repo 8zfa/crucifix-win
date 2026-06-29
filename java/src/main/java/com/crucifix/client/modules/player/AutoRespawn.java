@@ -11,8 +11,9 @@ import com.crucifix.client.modules.Setting;
  */
 public class AutoRespawn extends Module {
     
-    public AutoRespawn() {
-        super("AutoRespawn", "Automatically respawns", Category.PLAYER, 0);
+    public AutoRespawn(String name, Category category, Object mc) {
+        super(name, category, mc);
+        ;
         
         addSetting(Setting.createSlider("Delay", 0.0, 0.0, 5.0, 0.5));
     }
@@ -40,4 +41,5 @@ public class AutoRespawn extends Module {
         }
     }
 }
+
 

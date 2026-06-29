@@ -11,8 +11,9 @@ import com.crucifix.client.modules.Setting;
  */
 public class Reach extends Module {
     
-    public Reach() {
-        super("Reach", "Extends attack reach distance", Category.COMBAT, 0);
+    public Reach(String name, Category category, Object mc) {
+        super(name, category, mc);
+        ;
         
         addSetting(Setting.createSlider("Distance", 3.5, 3.0, 6.0, 0.1));
     }
@@ -52,4 +53,5 @@ public class Reach extends Module {
         }
     }
 }
+
 

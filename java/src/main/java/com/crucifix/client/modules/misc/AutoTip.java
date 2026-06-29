@@ -11,8 +11,9 @@ import com.crucifix.client.modules.Setting;
  */
 public class AutoTip extends Module {
     
-    public AutoTip() {
-        super("AutoTip", "Automatically tips players", Category.MISC, 0);
+    public AutoTip(String name, Category category, Object mc) {
+        super(name, category, mc);
+        ;
         
         addSetting(Setting.createSlider("Amount", 100.0, 10.0, 1000.0, 10.0));
     }
@@ -31,4 +32,5 @@ public class AutoTip extends Module {
         // Auto tip logic would go here
     }
 }
+
 

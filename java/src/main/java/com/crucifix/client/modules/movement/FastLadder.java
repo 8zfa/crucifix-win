@@ -11,8 +11,9 @@ import com.crucifix.client.modules.Setting;
  */
 public class FastLadder extends Module {
     
-    public FastLadder() {
-        super("FastLadder", "Climbs ladders faster", Category.MOVEMENT, 0);
+    public FastLadder(String name, Category category, Object mc) {
+        super(name, category, mc);
+        ;
         
         addSetting(Setting.createSlider("Speed", 2.0, 1.0, 5.0, 0.1));
     }
@@ -39,4 +40,5 @@ public class FastLadder extends Module {
         }
     }
 }
+
 

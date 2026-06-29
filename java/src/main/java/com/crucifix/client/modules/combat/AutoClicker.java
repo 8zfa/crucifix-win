@@ -14,8 +14,9 @@ public class AutoClicker extends Module {
     private long lastClickTime;
     private int clickCount;
     
-    public AutoClicker() {
-        super("AutoClicker", "Automatically clicks when holding mouse", Category.COMBAT, 67); // C key
+    public AutoClicker(String name, Category category, Object mc) {
+        super(name, category, mc);
+        
         
         addSetting(Setting.createSlider("CPS", 12.0, 1.0, 20.0, 1.0));
         addSetting(Setting.createToggle("Jitter", false));
@@ -54,4 +55,5 @@ public class AutoClicker extends Module {
         }
     }
 }
+
 

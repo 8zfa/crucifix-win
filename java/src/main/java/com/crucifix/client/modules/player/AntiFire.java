@@ -10,8 +10,9 @@ import com.crucifix.client.modules.Module;
  */
 public class AntiFire extends Module {
     
-    public AntiFire() {
-        super("AntiFire", "Prevents fire damage", Category.PLAYER, 0);
+    public AntiFire(String name, Category category, Object mc) {
+        super(name, category, mc);
+        ;
     }
     
     @SubscribeEvent
@@ -32,4 +33,5 @@ public class AntiFire extends Module {
         }
     }
 }
+
 

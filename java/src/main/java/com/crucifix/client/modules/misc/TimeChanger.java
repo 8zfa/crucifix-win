@@ -11,8 +11,9 @@ import com.crucifix.client.modules.Setting;
  */
 public class TimeChanger extends Module {
     
-    public TimeChanger() {
-        super("TimeChanger", "Changes world time", Category.MISC, 0);
+    public TimeChanger(String name, Category category, Object mc) {
+        super(name, category, mc);
+        ;
         
         addSetting(Setting.createSlider("Time", 12000.0, 0.0, 24000.0, 1000.0));
     }
@@ -34,4 +35,5 @@ public class TimeChanger extends Module {
         }
     }
 }
+
 

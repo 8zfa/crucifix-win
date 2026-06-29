@@ -11,8 +11,9 @@ import com.crucifix.client.modules.Setting;
  */
 public class Nametags extends Module {
     
-    public Nametags() {
-        super("Nametags", "Shows nametags through walls", Category.RENDER, 0);
+    public Nametags(String name, Category category, Object mc) {
+        super(name, category, mc);
+        ;
         
         addSetting(Setting.createToggle("Health", true));
         addSetting(Setting.createToggle("Distance", true));
@@ -38,4 +39,5 @@ public class Nametags extends Module {
         }
     }
 }
+
 

@@ -11,8 +11,9 @@ import com.crucifix.client.modules.Setting;
  */
 public class ChatFilter extends Module {
     
-    public ChatFilter() {
-        super("ChatFilter", "Filters chat messages", Category.MISC, 0);
+    public ChatFilter(String name, Category category, Object mc) {
+        super(name, category, mc);
+        ;
         
         addSetting(Setting.createToggle("Spam", true));
         addSetting(Setting.createToggle("Advertising", true));
@@ -36,4 +37,5 @@ public class ChatFilter extends Module {
         }
     }
 }
+
 

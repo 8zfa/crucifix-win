@@ -11,8 +11,8 @@ import com.crucifix.client.modules.Setting;
  */
 public class AutoEat extends Module {
     
-    public AutoEat() {
-        super("AutoEat", "Automatically eats food", Category.PLAYER, 0);
+    public AutoEat(String name, Category category, Object mc) {
+        super(name, category, mc);
         
         addSetting(Setting.createSlider("Hunger", 18.0, 1.0, 20.0, 1.0));
         addSetting(Setting.createDropdown("Priority", new String[]{"Saturation", "Hunger"}));

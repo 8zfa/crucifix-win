@@ -13,8 +13,8 @@ public class Speed extends Module {
     
     private int bhopTimer = 0;
     
-    public Speed() {
-        super("Speed", "Increases movement speed", Category.MOVEMENT, 71); // G key
+    public Speed(String name, Category category, Object mc) {
+        super(name, category, mc);
         
         addSetting(Setting.createSlider("Speed", 1.3, 1.0, 3.0, 0.05));
         addSetting(Setting.createDropdown("Mode", new String[]{"BHop", "OnGround", "Hop", "Timer"}));

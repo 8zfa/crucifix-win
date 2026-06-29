@@ -55,6 +55,7 @@ add_library(CrucifixDLL SHARED
     JVMTIHelper.cpp
     HookManager.cpp
     ResourceLoader.cpp
+    keyboard_hook.cpp
     hotspot/hotspot.cpp
     modules/ModuleManager.cpp
     gui/ClickGUI.cpp

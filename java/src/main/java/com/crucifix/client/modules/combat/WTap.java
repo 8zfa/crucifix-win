@@ -13,8 +13,9 @@ public class WTap extends Module {
     
     private boolean hasHit;
     
-    public WTap() {
-        super("WTap", "Resets sprint after hitting for more knockback", Category.COMBAT, 0);
+    public WTap(String name, Category category, Object mc) {
+        super(name, category, mc);
+        ;
         
         addSetting(Setting.createSlider("Delay", 100.0, 0.0, 500.0, 10.0));
     }
@@ -50,4 +51,5 @@ public class WTap extends Module {
         }
     }
 }
+
 

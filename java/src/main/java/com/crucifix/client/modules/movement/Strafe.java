@@ -11,8 +11,9 @@ import com.crucifix.client.modules.Setting;
  */
 public class Strafe extends Module {
     
-    public Strafe() {
-        super("Strafe", "Improves air strafing", Category.MOVEMENT, 0);
+    public Strafe(String name, Category category, Object mc) {
+        super(name, category, mc);
+        ;
         
         addSetting(Setting.createSlider("Speed", 0.5, 0.1, 1.0, 0.05));
     }
@@ -40,4 +41,5 @@ public class Strafe extends Module {
         }
     }
 }
+
 

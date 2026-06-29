@@ -9,126 +9,86 @@ import com.crucifix.client.modules.Category;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Main ClickGUI interface - renders via ImGui from C++ hook
- */
 public class ClickGUI {
-    private boolean open;
-    private int toggleKey;
+    private static ClickGUI instance;
     private List<Panel> panels;
-    private Theme currentTheme;
-    private int mouseX, mouseY;
-    private boolean dragging;
-    private Panel draggedPanel;
-    private int dragOffsetX, dragOffsetY;
+    private boolean open = false;
+    private Theme theme;
+    private float animationProgress = 0f;
     
-    public ClickGUI() {
-        this.open = false;
-        this.toggleKey = 0xA1; // VK_RSHIFT
-        this.panels = new ArrayList<>();
-        this.currentTheme = new CrucifixDark();
-        this.mouseX = 0;
-        this.mouseY = 0;
-        this.dragging = false;
+    private ClickGUI() {
+        System.out.println("[ClickGUI] Creating instance...");
+        theme = new CrucifixDark();
+        panels = new ArrayList<>();
         
-        initializePanels();
-    }
-    
-    private void initializePanels() {
-        int x = 10;
+        // Create panels for each category
         for (Category category : Category.values()) {
-            Panel panel = new Panel(category.getDisplayName(), x, 10, 140, 300, category);
+            Panel panel = new Panel(category.getDisplayName(), 10, 10, 140, 300, category);
             panels.add(panel);
-            x += 150;
         }
+        
+        System.out.println("[ClickGUI] Created " + panels.size() + " panels");
     }
     
-    /**
-     * Called from C++ wglSwapBuffers hook to render the GUI
-     */
-    public void render(float partialTicks) {
+    public static ClickGUI getInstance() {
+        if (instance == null) {
+            instance = new ClickGUI();
+        }
+        return instance;
+    }
+    
+    // This is called from the wglSwapBuffers hook
+    public void render() {
         if (!open) return;
         
-        // Render all panels
-        for (Panel panel : panels) {
-            panel.render(partialTicks, mouseX, mouseY);
+        try {
+            // Animation
+            if (animationProgress < 1f) {
+                animationProgress = Math.min(1f, animationProgress + 0.05f);
+            }
+            
+            float scale = 0.8f + (0.2f * animationProgress);
+            float alpha = animationProgress;
+            
+            // Check if ImGui is available
+            if (!isImGuiAvailable()) {
+                System.out.println("[ClickGUI] ImGui not available");
+                return;
+            }
+            
+            // Use ImGui to render panels
+            for (Panel panel : panels) {
+                panel.render(0, 0, 0);
+            }
+            
+        } catch (Exception e) {
+            System.out.println("[ClickGUI] Render error: " + e.getMessage());
+            e.printStackTrace();
         }
     }
     
-    /**
-     * Toggle the ClickGUI visibility
-     */
+    // JNI method to check if ImGui is initialized
+    private native boolean isImGuiAvailable();
+    
     public void toggle() {
         open = !open;
-        System.out.println("[ClickGUI] Toggled: " + (open ? "OPEN" : "CLOSED"));
-    }
-    
-    /**
-     * Handle mouse click from C++ input
-     */
-    public void handleMouseClick(int button, int x, int y) {
-        if (!open) return;
-        
-        this.mouseX = x;
-        this.mouseY = y;
-        
-        if (button == 0) { // Left click
-            for (Panel panel : panels) {
-                if (panel.isMouseOver(x, y)) {
-                    if (panel.isHeaderOver(x, y)) {
-                        dragging = true;
-                        draggedPanel = panel;
-                        dragOffsetX = x - panel.getX();
-                        dragOffsetY = y - panel.getY();
-                    } else {
-                        panel.handleClick(x, y);
-                    }
-                    break;
-                }
-            }
-        }
-    }
-    
-    /**
-     * Handle mouse release from C++ input
-     */
-    public void handleMouseRelease(int button) {
-        if (button == 0) {
-            dragging = false;
-            draggedPanel = null;
-        }
-    }
-    
-    /**
-     * Handle mouse move from C++ input
-     */
-    public void handleMouseMove(int x, int y) {
-        this.mouseX = x;
-        this.mouseY = y;
-        
-        if (dragging && draggedPanel != null) {
-            draggedPanel.setPosition(x - dragOffsetX, y - dragOffsetY);
-        }
+        animationProgress = 0f;
+        System.out.println("[ClickGUI] Toggled: " + open);
     }
     
     public boolean isOpen() {
         return open;
     }
     
-    public int getToggleKey() {
-        return toggleKey;
+    public Theme getTheme() {
+        return theme;
     }
     
-    public void setToggleKey(int toggleKey) {
-        this.toggleKey = toggleKey;
-    }
-    
-    public Theme getCurrentTheme() {
-        return currentTheme;
-    }
-    
-    public void setCurrentTheme(Theme theme) {
-        this.currentTheme = theme;
+    public void setTheme(Theme theme) {
+        this.theme = theme;
+        for (Panel panel : panels) {
+            panel.setTheme(theme);
+        }
     }
     
     public List<Panel> getPanels() {

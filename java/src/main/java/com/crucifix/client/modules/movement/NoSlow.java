@@ -11,8 +11,9 @@ import com.crucifix.client.modules.Setting;
  */
 public class NoSlow extends Module {
     
-    public NoSlow() {
-        super("NoSlow", "Prevents slowdown from items", Category.MOVEMENT, 78); // N key
+    public NoSlow(String name, Category category, Object mc) {
+        super(name, category, mc);
+        ; // N key
         
         addSetting(Setting.createToggle("Items", true));
         addSetting(Setting.createToggle("SoulSand", true));
@@ -49,4 +50,5 @@ public class NoSlow extends Module {
         }
     }
 }
+
 

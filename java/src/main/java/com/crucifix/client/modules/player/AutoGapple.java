@@ -11,8 +11,9 @@ import com.crucifix.client.modules.Setting;
  */
 public class AutoGapple extends Module {
     
-    public AutoGapple() {
-        super("AutoGapple", "Automatically eats golden apples", Category.PLAYER, 0);
+    public AutoGapple(String name, Category category, Object mc) {
+        super(name, category, mc);
+        ;
         
         addSetting(Setting.createSlider("Health", 10.0, 1.0, 20.0, 1.0));
     }
@@ -37,4 +38,5 @@ public class AutoGapple extends Module {
         }
     }
 }
+
 

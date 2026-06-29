@@ -11,8 +11,9 @@ import com.crucifix.client.modules.Setting;
  */
 public class Tracers extends Module {
     
-    public Tracers() {
-        super("Tracers", "Draws lines to entities", Category.RENDER, 0);
+    public Tracers(String name, Category category, Object mc) {
+        super(name, category, mc);
+        ;
         
         addSetting(Setting.createToggle("Players", true));
         addSetting(Setting.createToggle("Mobs", false));
@@ -37,4 +38,5 @@ public class Tracers extends Module {
         }
     }
 }
+
 

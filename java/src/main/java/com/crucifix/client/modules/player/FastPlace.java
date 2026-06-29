@@ -11,8 +11,9 @@ import com.crucifix.client.modules.Setting;
  */
 public class FastPlace extends Module {
     
-    public FastPlace() {
-        super("FastPlace", "Places blocks faster", Category.PLAYER, 0);
+    public FastPlace(String name, Category category, Object mc) {
+        super(name, category, mc);
+        ;
         
         addSetting(Setting.createSlider("Speed", 0.0, 0.0, 4.0, 1.0));
     }
@@ -36,4 +37,5 @@ public class FastPlace extends Module {
         }
     }
 }
+
 

@@ -11,8 +11,9 @@ import com.crucifix.client.modules.Setting;
  */
 public class Step extends Module {
     
-    public Step() {
-        super("Step", "Steps up blocks automatically", Category.MOVEMENT, 0);
+    public Step(String name, Category category, Object mc) {
+        super(name, category, mc);
+        ;
         
         addSetting(Setting.createSlider("Height", 1.0, 0.5, 2.5, 0.5));
     }
@@ -46,4 +47,5 @@ public class Step extends Module {
         }
     }
 }
+
 

@@ -10,8 +10,9 @@ import com.crucifix.client.modules.Module;
  */
 public class NoHurtCam extends Module {
     
-    public NoHurtCam() {
-        super("NoHurtCam", "Disables hurt camera effect", Category.RENDER, 0);
+    public NoHurtCam(String name, Category category, Object mc) {
+        super(name, category, mc);
+        ;
     }
     
     @SubscribeEvent
@@ -29,4 +30,5 @@ public class NoHurtCam extends Module {
         }
     }
 }
+
 

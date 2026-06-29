@@ -11,8 +11,9 @@ import com.crucifix.client.modules.Setting;
  */
 public class Chams extends Module {
     
-    public Chams() {
-        super("Chams", "Renders entities through walls", Category.RENDER, 0);
+    public Chams(String name, Category category, Object mc) {
+        super(name, category, mc);
+        ;
         
         addSetting(Setting.createToggle("Players", true));
         addSetting(Setting.createToggle("Mobs", false));
@@ -41,4 +42,5 @@ public class Chams extends Module {
         }
     }
 }
+
 

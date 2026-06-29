@@ -11,8 +11,9 @@ import com.crucifix.client.modules.Setting;
  */
 public class AntiBot extends Module {
     
-    public AntiBot() {
-        super("AntiBot", "Filters out server bots", Category.MISC, 0);
+    public AntiBot(String name, Category category, Object mc) {
+        super(name, category, mc);
+        ;
         
         addSetting(Setting.createDropdown("Mode", new String[]{"Hypixel", "SkyWars", "BedWars", "Practice"}));
     }
@@ -34,4 +35,5 @@ public class AntiBot extends Module {
         }
     }
 }
+
 

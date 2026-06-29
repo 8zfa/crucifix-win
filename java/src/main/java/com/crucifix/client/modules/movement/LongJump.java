@@ -11,8 +11,9 @@ import com.crucifix.client.modules.Setting;
  */
 public class LongJump extends Module {
     
-    public LongJump() {
-        super("LongJump", "Increases jump distance", Category.MOVEMENT, 0);
+    public LongJump(String name, Category category, Object mc) {
+        super(name, category, mc);
+        ;
         
         addSetting(Setting.createSlider("Boost", 2.0, 1.0, 5.0, 0.1));
     }
@@ -37,4 +38,5 @@ public class LongJump extends Module {
         }
     }
 }
+
 

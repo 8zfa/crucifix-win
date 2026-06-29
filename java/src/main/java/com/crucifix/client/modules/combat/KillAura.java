@@ -11,8 +11,8 @@ import com.crucifix.client.modules.Setting;
  */
 public class KillAura extends Module {
     
-    public KillAura() {
-        super("KillAura", "Automatically attacks nearby entities", Category.COMBAT, 82); // R key
+    public KillAura(String name, Category category, Object mc) {
+        super(name, category, mc);
         
         addSetting(Setting.createSlider("Range", 4.2, 1.0, 6.0, 0.1));
         addSetting(Setting.createSlider("CPS", 12.0, 1.0, 20.0, 1.0));

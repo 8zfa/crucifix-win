@@ -11,8 +11,9 @@ import com.crucifix.client.modules.Setting;
  */
 public class Sprint extends Module {
     
-    public Sprint() {
-        super("Sprint", "Automatically sprints", Category.MOVEMENT, 0);
+    public Sprint(String name, Category category, Object mc) {
+        super(name, category, mc);
+        ;
         
         addSetting(Setting.createToggle("AllDirections", false));
         addSetting(Setting.createToggle("Omnidirectional", false));
@@ -67,4 +68,5 @@ public class Sprint extends Module {
         }
     }
 }
+
 

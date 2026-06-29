@@ -11,8 +11,9 @@ import com.crucifix.client.modules.Setting;
  */
 public class AutoSoup extends Module {
     
-    public AutoSoup() {
-        super("AutoSoup", "Automatically eats soup", Category.PLAYER, 0);
+    public AutoSoup(String name, Category category, Object mc) {
+        super(name, category, mc);
+        ;
         
         addSetting(Setting.createSlider("Health", 15.0, 1.0, 20.0, 1.0));
     }
@@ -37,4 +38,5 @@ public class AutoSoup extends Module {
         }
     }
 }
+
 

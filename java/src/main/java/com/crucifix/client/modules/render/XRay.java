@@ -11,8 +11,9 @@ import com.crucifix.client.modules.Setting;
  */
 public class XRay extends Module {
     
-    public XRay() {
-        super("XRay", "Makes blocks transparent", Category.RENDER, 0);
+    public XRay(String name, Category category, Object mc) {
+        super(name, category, mc);
+        ;
         
         addSetting(Setting.createSlider("Opacity", 0.5, 0.0, 1.0, 0.05));
     }
@@ -54,4 +55,5 @@ public class XRay extends Module {
         }
     }
 }
+
 

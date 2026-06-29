@@ -11,8 +11,9 @@ import com.crucifix.client.modules.Setting;
  */
 public class AutoPearl extends Module {
     
-    public AutoPearl() {
-        super("AutoPearl", "Automatically throws ender pearls", Category.PLAYER, 0);
+    public AutoPearl(String name, Category category, Object mc) {
+        super(name, category, mc);
+        ;
         
         addSetting(Setting.createSlider("Health", 5.0, 1.0, 10.0, 0.5));
     }
@@ -37,4 +38,5 @@ public class AutoPearl extends Module {
         }
     }
 }
+
 

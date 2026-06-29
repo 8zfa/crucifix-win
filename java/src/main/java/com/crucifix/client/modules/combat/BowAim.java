@@ -11,8 +11,9 @@ import com.crucifix.client.modules.Setting;
  */
 public class BowAim extends Module {
     
-    public BowAim() {
-        super("BowAim", "Automatically aims bow at targets", Category.COMBAT, 0);
+    public BowAim(String name, Category category, Object mc) {
+        super(name, category, mc);
+        ;
         
         addSetting(Setting.createToggle("Predict", true));
         addSetting(Setting.createSlider("FOV", 60.0, 30.0, 180.0, 5.0));
@@ -40,4 +41,5 @@ public class BowAim extends Module {
         }
     }
 }
+
 

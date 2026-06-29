@@ -15,6 +15,11 @@ static void (*s_originalRenderWorld)() = nullptr;
 
 // External JNI environment (set from dllmain.cpp)
 extern JNIEnv* g_env;
+extern JavaVM* g_jvm;
+extern bool g_initialized;
+
+bool g_ImGuiAvailable = false;
+bool g_JavaRenderInitialized = false;
 
 // Hook functions
 static void TickHook()
@@ -76,6 +81,47 @@ static void RenderWorldHook()
             }
         }
     }
+}
+
+void CallJavaRender() {
+    if (g_jvm == nullptr) return;
+    if (!g_initialized) return;
+    if (!g_ImGuiAvailable) return;
+    
+    JNIEnv* env;
+    if (g_jvm->AttachCurrentThread((void**)&env, nullptr) != JNI_OK) {
+        printf("[Render] Could not attach to JVM\n");
+        return;
+    }
+    
+    // Get Crucifix class
+    jclass crucifixClass = env->FindClass("com/crucifix/client/Crucifix");
+    if (crucifixClass == nullptr) {
+        printf("[Render] Could not find Crucifix class\n");
+        g_jvm->DetachCurrentThread();
+        return;
+    }
+    
+    // Call renderGUI method
+    jmethodID renderMethod = env->GetStaticMethodID(
+        crucifixClass,
+        "renderGUI",
+        "()V"
+    );
+    
+    if (renderMethod != nullptr) {
+        env->CallStaticVoidMethod(crucifixClass, renderMethod);
+        if (!g_JavaRenderInitialized) {
+            printf("[Render] First render call successful!\n");
+            g_JavaRenderInitialized = true;
+        }
+    } else {
+        if (!g_JavaRenderInitialized) {
+            printf("[Render] Could not find renderGUI method\n");
+        }
+    }
+    
+    g_jvm->DetachCurrentThread();
 }
 
 void InitializeHooks()

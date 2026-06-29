@@ -11,8 +11,8 @@ import com.crucifix.client.modules.Setting;
  */
 public class Velocity extends Module {
     
-    public Velocity() {
-        super("Velocity", "Reduces knockback from attacks", Category.COMBAT, 86); // V key
+    public Velocity(String name, Category category, Object mc) {
+        super(name, category, mc);
         
         addSetting(Setting.createSlider("Horizontal", 0.0, 0.0, 1.0, 0.05));
         addSetting(Setting.createSlider("Vertical", 0.0, 0.0, 1.0, 0.05));

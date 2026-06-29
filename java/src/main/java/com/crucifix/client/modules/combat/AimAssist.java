@@ -11,8 +11,8 @@ import com.crucifix.client.modules.Setting;
  */
 public class AimAssist extends Module {
     
-    public AimAssist() {
-        super("AimAssist", "Assists with aiming at targets", Category.COMBAT, 0);
+    public AimAssist(String name, Category category, Object mc) {
+        super(name, category, mc);
         
         addSetting(Setting.createSlider("Speed", 2.0, 0.1, 10.0, 0.1));
         addSetting(Setting.createSlider("FOV", 90.0, 30.0, 360.0, 5.0));

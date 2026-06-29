@@ -10,8 +10,9 @@ import com.crucifix.client.modules.Module;
  */
 public class CameraClip extends Module {
     
-    public CameraClip() {
-        super("CameraClip", "Allows camera to clip through blocks", Category.RENDER, 0);
+    public CameraClip(String name, Category category, Object mc) {
+        super(name, category, mc);
+        ;
     }
     
     @SubscribeEvent
@@ -46,4 +47,5 @@ public class CameraClip extends Module {
         }
     }
 }
+
 

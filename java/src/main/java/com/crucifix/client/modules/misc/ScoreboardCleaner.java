@@ -10,8 +10,9 @@ import com.crucifix.client.modules.Module;
  */
 public class ScoreboardCleaner extends Module {
     
-    public ScoreboardCleaner() {
-        super("ScoreboardCleaner", "Cleans up scoreboard", Category.MISC, 0);
+    public ScoreboardCleaner(String name, Category category, Object mc) {
+        super(name, category, mc);
+        ;
     }
     
     @SubscribeEvent
@@ -29,4 +30,5 @@ public class ScoreboardCleaner extends Module {
         }
     }
 }
+
 

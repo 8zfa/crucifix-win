@@ -11,8 +11,9 @@ import com.crucifix.client.modules.Setting;
  */
 public class Glow extends Module {
     
-    public Glow() {
-        super("Glow", "Adds glow effect to entities", Category.RENDER, 0);
+    public Glow(String name, Category category, Object mc) {
+        super(name, category, mc);
+        ;
         
         addSetting(Setting.createToggle("Players", true));
         addSetting(Setting.createToggle("Mobs", false));
@@ -38,4 +39,5 @@ public class Glow extends Module {
         }
     }
 }
+
 

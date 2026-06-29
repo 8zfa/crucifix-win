@@ -11,8 +11,9 @@ import com.crucifix.client.modules.Setting;
  */
 public class FullBright extends Module {
     
-    public FullBright() {
-        super("FullBright", "Increases brightness", Category.RENDER, 0);
+    public FullBright(String name, Category category, Object mc) {
+        super(name, category, mc);
+        ;
         
         addSetting(Setting.createSlider("Gamma", 15.0, 1.0, 20.0, 0.5));
     }
@@ -66,4 +67,5 @@ public class FullBright extends Module {
         }
     }
 }
+
 

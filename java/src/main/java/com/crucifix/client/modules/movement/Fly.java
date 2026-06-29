@@ -11,8 +11,9 @@ import com.crucifix.client.modules.Setting;
  */
 public class Fly extends Module {
     
-    public Fly() {
-        super("Fly", "Enables flight mode", Category.MOVEMENT, 70); // F key
+    public Fly(String name, Category category, Object mc) {
+        super(name, category, mc);
+        ; // F key
         
         addSetting(Setting.createSlider("Speed", 1.0, 0.1, 5.0, 0.1));
         addSetting(Setting.createDropdown("Mode", new String[]{"Vanilla", "Smooth", "Jetpack"}));
@@ -57,4 +58,5 @@ public class Fly extends Module {
         }
     }
 }
+
 

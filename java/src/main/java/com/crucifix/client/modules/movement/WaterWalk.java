@@ -11,8 +11,9 @@ import com.crucifix.client.modules.Setting;
  */
 public class WaterWalk extends Module {
     
-    public WaterWalk() {
-        super("WaterWalk", "Walks on water", Category.MOVEMENT, 0);
+    public WaterWalk(String name, Category category, Object mc) {
+        super(name, category, mc);
+        ;
         
         addSetting(Setting.createDropdown("Mode", new String[]{"Vanilla", "Dolphin", "NCP"}));
     }
@@ -42,4 +43,5 @@ public class WaterWalk extends Module {
         }
     }
 }
+
 

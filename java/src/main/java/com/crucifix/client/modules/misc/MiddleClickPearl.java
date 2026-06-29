@@ -10,8 +10,9 @@ import com.crucifix.client.modules.Module;
  */
 public class MiddleClickPearl extends Module {
     
-    public MiddleClickPearl() {
-        super("MiddleClickPearl", "Throws ender pearl on middle click", Category.MISC, 0);
+    public MiddleClickPearl(String name, Category category, Object mc) {
+        super(name, category, mc);
+        ;
     }
     
     @SubscribeEvent
@@ -31,4 +32,5 @@ public class MiddleClickPearl extends Module {
         }
     }
 }
+
 

@@ -42,110 +42,83 @@ public class Crucifix {
     private ClickGUI clickGUI;
     private CommandManager commandManager;
     
-    private boolean initialized = false;
-    private boolean lunarBridgeInitialized = false;
+    private static boolean initialized = false;
+    private static boolean initAttempted = false;
+    private static int retryCount = 0;
+    private static final int MAX_RETRIES = 10;
     
-    /**
-     * Called from native code when the DLL is injected
-     */
     public static void init() {
-        java.io.FileWriter debugLog = null;
-        try {
-            debugLog = new java.io.FileWriter(System.getProperty("user.home") + "\\AppData\\Local\\Temp\\crucifix_debug.log", true);
+        if (initAttempted) {
+            System.out.println("[CRUCIFIX] init() already called, skipping");
+            return;
+        }
+        
+        initAttempted = true;
+        System.out.println("[CRUCIFIX] init() called from JVMTI");
+        
+        // Start initialization in background
+        new Thread(() -> initializeWithRetry()).start();
+    }
+    
+    private static void initializeWithRetry() {
+        while (retryCount < MAX_RETRIES && !initialized) {
+            retryCount++;
+            System.out.println("[CRUCIFIX] Initialization attempt " + retryCount + "/" + MAX_RETRIES);
             
-            debugLog.write("[CRUCIFIX] init() method called from JVMTI\n");
-            debugLog.flush();
-            
-            System.out.println("[CRUCIFIX] init() method called from JVMTI");
-            
-            // Wait for Lunar Client to fully load
-            debugLog.write("[CRUCIFIX] Waiting 5 seconds for Lunar to fully load...\n");
-            debugLog.flush();
-            System.out.println("[CRUCIFIX] Waiting 5 seconds for Lunar to fully load...");
-            Thread.sleep(5000);
-            
-            // Initialize LunarBridge first
-            debugLog.write("[CRUCIFIX] Initializing LunarBridge...\n");
-            debugLog.flush();
-            System.out.println("[CRUCIFIX] Initializing LunarBridge...");
-            
-            boolean bridgeSuccess = LunarBridge.initialize();
-            instance.lunarBridgeInitialized = bridgeSuccess;
-            
-            if (bridgeSuccess) {
-                debugLog.write("[CRUCIFIX] LunarBridge initialized successfully!\n");
-                debugLog.flush();
-                System.out.println("[CRUCIFIX] LunarBridge initialized successfully!");
-            } else {
-                debugLog.write("[CRUCIFIX] LunarBridge initialization failed, continuing without Minecraft access\n");
-                debugLog.flush();
-                System.out.println("[CRUCIFIX] LunarBridge initialization failed, continuing without Minecraft access");
-            }
-            
-            // Write debug info to file
             try {
-                java.io.FileWriter fw = new java.io.FileWriter(System.getProperty("user.home") + "\\AppData\\Local\\Temp\\crucifix_init.log");
-                fw.write("init() called at: " + new java.util.Date() + "\n");
-                fw.write("Thread: " + Thread.currentThread().getName() + "\n");
-                fw.write("LunarBridge: " + (bridgeSuccess ? "SUCCESS" : "FAILED") + "\n");
-                fw.close();
-            } catch (Exception e) {
-                debugLog.write("[CRUCIFIX] Failed to write init log: " + e.getMessage() + "\n");
-                debugLog.flush();
-            }
-            
-            debugLog.write("[CRUCIFIX] Calling initialize()...\n");
-            debugLog.flush();
-            
-            initialize();
-            
-            debugLog.write("[CRUCIFIX] init() completed successfully\n");
-            debugLog.flush();
-            System.out.println("[CRUCIFIX] init() completed successfully");
-            
-        } catch (Throwable t) {
-            String errorMsg = "[CRUCIFIX] Exception in init(): " + t.getMessage();
-            System.out.println(errorMsg);
-            t.printStackTrace(System.out);
-            
-            // Write full stack trace to file
-            try {
-                java.io.FileWriter fw = new java.io.FileWriter(System.getProperty("user.home") + "\\AppData\\Local\\Temp\\crucifix_error.log");
-                fw.write("Exception in init(): " + t.getMessage() + "\n");
-                fw.write("Stack trace:\n");
-                for (StackTraceElement ste : t.getStackTrace()) {
-                    fw.write("  " + ste.toString() + "\n");
-                }
-                if (t.getCause() != null) {
-                    fw.write("Caused by: " + t.getCause().getMessage() + "\n");
-                    for (StackTraceElement ste : t.getCause().getStackTrace()) {
-                        fw.write("  " + ste.toString() + "\n");
+                // Step 1: Initialize Lunar Bridge
+                System.out.println("[CRUCIFIX] Establishing Lunar bridge...");
+                boolean bridgeSuccess = LunarBridge.initialize();
+                
+                if (bridgeSuccess) {
+                    Object mc = LunarBridge.getMinecraft();
+                    Class<?> mcClass = LunarBridge.getMinecraftClass();
+                    
+                    System.out.println("[CRUCIFIX] Bridge successful!");
+                    System.out.println("[CRUCIFIX] Minecraft instance: " + mc);
+                    System.out.println("[CRUCIFIX] Minecraft class: " + mcClass);
+                    
+                    if (mc != null) {
+                        // Step 2: Initialize modules with Minecraft instance
+                        ModuleManager.initModules(mc);
+                        System.out.println("[CRUCIFIX] Modules initialized!");
+                        
+                        // Step 3: Initialize ClickGUI
+                        ClickGUI.getInstance();
+                        System.out.println("[CRUCIFIX] ClickGUI initialized!");
+                        
+                        // Step 4: Initialize HUD
+                        HUDManager.getInstance();
+                        System.out.println("[CRUCIFIX] HUD initialized!");
+                        
+                        initialized = true;
+                        System.out.println("[CRUCIFIX] INITIALIZATION COMPLETE!");
+                        break;
+                    } else {
+                        System.out.println("[CRUCIFIX] Minecraft instance is null!");
                     }
+                } else {
+                    System.out.println("[CRUCIFIX] Lunar bridge failed!");
                 }
-                fw.close();
-                System.out.println("[CRUCIFIX] Error details written to crucifix_error.log");
+                
+                // Wait before retry
+                System.out.println("[CRUCIFIX] Retrying in 2 seconds...");
+                Thread.sleep(2000);
+                
             } catch (Exception e) {
-                System.out.println("[CRUCIFIX] Failed to write error log: " + e.getMessage());
-            }
-            
-            // Also write to debug log if it's open
-            if (debugLog != null) {
-                try {
-                    debugLog.write(errorMsg + "\n");
-                    t.printStackTrace(new java.io.PrintWriter(debugLog));
-                    debugLog.flush();
-                } catch (Exception e) {
-                    // Ignore
+                System.out.println("[CRUCIFIX] Init error: " + e.getMessage());
+                e.printStackTrace();
+                
+                if (retryCount < MAX_RETRIES) {
+                    try {
+                        Thread.sleep(2000);
+                    } catch (InterruptedException ignored) {}
                 }
             }
-        } finally {
-            if (debugLog != null) {
-                try {
-                    debugLog.close();
-                } catch (Exception e) {
-                    // Ignore
-                }
-            }
+        }
+        
+        if (!initialized) {
+            System.out.println("[CRUCIFIX] FAILED TO INITIALIZE AFTER " + MAX_RETRIES + " ATTEMPTS");
         }
     }
     
@@ -183,14 +156,6 @@ public class Crucifix {
             configManager.loadConfig();
             
             System.out.println("[CRUCIFIX] Config loaded");
-            
-            // Initialize modules only if LunarBridge succeeded
-            if (lunarBridgeInitialized) {
-                moduleManager.initializeModules();
-                System.out.println("[CRUCIFIX] Modules initialized");
-            } else {
-                System.out.println("[CRUCIFIX] Skipping module initialization (LunarBridge failed)");
-            }
             
             initialized = true;
             System.out.println("[CRUCIFIX] Initialization complete");
@@ -240,9 +205,20 @@ public class Crucifix {
      * Called from native C++ code to toggle ClickGUI
      */
     public static void toggleClickGUI() {
-        if (instance != null && instance.clickGUI != null) {
-            instance.clickGUI.toggle();
-            System.out.println("[CRUCIFIX] ClickGUI toggled via native call");
+        if (ClickGUI.getInstance() != null) {
+            ClickGUI.getInstance().toggle();
+            System.out.println("[CRUCIFIX] ClickGUI toggled");
+        } else {
+            System.out.println("[CRUCIFIX] ClickGUI not available");
+        }
+    }
+    
+    /**
+     * Called from C++ render hook
+     */
+    public static void renderGUI() {
+        if (initialized && ClickGUI.getInstance() != null) {
+            ClickGUI.getInstance().render();
         }
     }
     

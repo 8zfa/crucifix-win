@@ -11,8 +11,9 @@ import com.crucifix.client.modules.Setting;
  */
 public class HitBoxes extends Module {
     
-    public HitBoxes() {
-        super("HitBoxes", "Expands entity hitboxes", Category.COMBAT, 0);
+    public HitBoxes(String name, Category category, Object mc) {
+        super(name, category, mc);
+        ;
         
         addSetting(Setting.createSlider("Expand", 0.1, 0.0, 0.5, 0.01));
     }
@@ -53,4 +54,5 @@ public class HitBoxes extends Module {
         }
     }
 }
+
 

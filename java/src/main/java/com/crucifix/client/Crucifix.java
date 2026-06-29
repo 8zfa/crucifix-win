@@ -144,11 +144,11 @@ public class Crucifix {
             
             // Initialize core components
             eventBus = new EventBus();
-            moduleManager = new ModuleManager();
+            moduleManager = ModuleManager.getInstance();
             configManager = new ConfigManager();
             animationEngine = new AnimationEngine();
             hudManager = new HUDManager();
-            clickGUI = new ClickGUI();
+            clickGUI = ClickGUI.getInstance();
             commandManager = new CommandManager();
             
             System.out.println("[CRUCIFIX] Core components initialized");
@@ -300,7 +300,7 @@ public class Crucifix {
         
         // Render ClickGUI if open
         if (clickGUI.isOpen()) {
-            clickGUI.render(event.getPartialTicks());
+            clickGUI.render();
         }
     }
     
@@ -358,7 +358,7 @@ public class Crucifix {
     }
     
     public boolean isLunarBridgeInitialized() {
-        return lunarBridgeInitialized;
+        return LunarBridge.isInitialized();
     }
 }
 

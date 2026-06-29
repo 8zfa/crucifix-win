@@ -1,33 +1,28 @@
 package com.crucifix.client.gui;
 
-import com.crucifix.client.Crucifix;
-import com.crucifix.client.gui.components.Panel;
-import com.crucifix.client.gui.themes.Theme;
-import com.crucifix.client.gui.themes.CrucifixDark;
+import com.crucifix.client.core.ModuleManager;
 import com.crucifix.client.modules.Category;
+import com.crucifix.client.modules.Module;
+import com.crucifix.client.gui.themes.CrucifixDark;
+import com.crucifix.client.gui.themes.Theme;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class ClickGUI {
     private static ClickGUI instance;
-    private List<Panel> panels;
     private boolean open = false;
     private Theme theme;
     private float animationProgress = 0f;
+    private boolean imGuiAvailable = false;
     
     private ClickGUI() {
         System.out.println("[ClickGUI] Creating instance...");
         theme = new CrucifixDark();
-        panels = new ArrayList<>();
         
-        // Create panels for each category
-        for (Category category : Category.values()) {
-            Panel panel = new Panel(category.getDisplayName(), 10, 10, 140, 300, category);
-            panels.add(panel);
-        }
-        
-        System.out.println("[ClickGUI] Created " + panels.size() + " panels");
+        // Check ImGui availability
+        imGuiAvailable = isImGuiAvailable();
+        System.out.println("[ClickGUI] ImGui available: " + imGuiAvailable);
     }
     
     public static ClickGUI getInstance() {
@@ -37,54 +32,65 @@ public class ClickGUI {
         return instance;
     }
     
-    public Theme getCurrentTheme() {
-        return theme;
-    }
-    
-    public boolean isOpen() {
-        return open;
-    }
-    
-    public void setOpen(boolean open) {
-        this.open = open;
-    }
-    
-    // This is called from the wglSwapBuffers hook
+    // Called from C++ wglSwapBuffers hook
     public void render() {
-        System.out.println("[ClickGUI] render() called, open=" + open);
-        
         if (!open) {
+            // Still call this occasionally to check ImGui status
+            if (!imGuiAvailable) {
+                imGuiAvailable = isImGuiAvailable();
+                if (imGuiAvailable) {
+                    System.out.println("[ClickGUI] ImGui now available!");
+                }
+            }
             return;
         }
         
         try {
-            System.out.println("[ClickGUI] Checking ImGui availability...");
-            
-            // Check if ImGui is available
-            boolean imGuiAvailable = isImGuiAvailable();
-            System.out.println("[ClickGUI] ImGui available: " + imGuiAvailable);
+            // Update ImGui status
+            imGuiAvailable = isImGuiAvailable();
             
             if (!imGuiAvailable) {
-                System.out.println("[ClickGUI] ImGui not available yet, skipping render");
+                System.out.println("[ClickGUI] render() called but ImGui not available");
                 return;
             }
-            
-            System.out.println("[ClickGUI] Starting render...");
             
             // Animation
             if (animationProgress < 1f) {
                 animationProgress = Math.min(1f, animationProgress + 0.05f);
             }
             
-            float scale = 0.8f + (0.2f * animationProgress);
             float alpha = animationProgress;
             
-            // Use ImGui to render panels
-            for (Panel panel : panels) {
-                panel.render(0, 0, 0);
+            // === ACTUAL IMGUI RENDERING ===
+            nSetNextWindowSize(400, 300);
+            nSetNextWindowPos(50, 50);
+            nSetNextWindowBgAlpha(alpha);
+            
+            nBegin("Crucifix Client", 0);
+            
+            nText("ClickGUI is open!");
+            nSeparator();
+            
+            // Show all modules from all categories
+            nText("Modules: " + ModuleManager.getInstance().getModules().size());
+            nSeparator();
+            
+            // Draw modules by category
+            for (Category category : Category.values()) {
+                String categoryName = category.toString();
+                if (nCollapsingHeader(categoryName)) {
+                    for (Module module : ModuleManager.getInstance().getModules()) {
+                        if (module.getCategory() == category) {
+                            boolean enabled = module.isEnabled();
+                            if (nCheckbox(module.getName(), enabled)) {
+                                module.toggle();
+                            }
+                        }
+                    }
+                }
             }
             
-            System.out.println("[ClickGUI] Render complete");
+            nEnd();
             
         } catch (Exception e) {
             System.out.println("[ClickGUI] Render error: " + e.getMessage());
@@ -92,28 +98,44 @@ public class ClickGUI {
         }
     }
     
-    // JNI method to check if ImGui is initialized
-    private native boolean isImGuiAvailable();
-    
     public void toggle() {
         open = !open;
         animationProgress = 0f;
         System.out.println("[ClickGUI] Toggled: " + open);
     }
     
-    public Theme getTheme() {
+    public boolean isOpen() {
+        return open;
+    }
+    
+    public Theme getCurrentTheme() {
         return theme;
     }
     
     public void setTheme(Theme theme) {
         this.theme = theme;
-        for (Panel panel : panels) {
-            panel.setTheme(theme);
-        }
     }
     
-    public List<Panel> getPanels() {
-        return panels;
-    }
+    // === NATIVE IMGUI METHODS ===
+    // These call the C++ ImGui implementation
+    
+    private native boolean isImGuiAvailable();
+    
+    // ImGui drawing methods
+    private native void nBegin(String name, int flags);
+    private native void nEnd();
+    private native void nText(String text);
+    private native void nSeparator();
+    private native boolean nCollapsingHeader(String label);
+    private native boolean nCheckbox(String label, boolean value);
+    private native boolean nButton(String label);
+    private native void nSameLine();
+    private native void nPushStyleColor(int idx, float r, float g, float b, float a);
+    private native void nPopStyleColor();
+    private native void nPushStyleVar(int idx, float value);
+    private native void nPopStyleVar();
+    private native void nSetNextWindowSize(float w, float h);
+    private native void nSetNextWindowPos(float x, float y);
+    private native void nSetNextWindowBgAlpha(float alpha);
 }
 

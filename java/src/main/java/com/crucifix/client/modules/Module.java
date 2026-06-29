@@ -168,10 +168,6 @@ public abstract class Module {
         return minecraftInstance;
     }
     
-    public int getKeyBind() {
-        return keyBind;
-    }
-    
     // Override these
     public void onEnable() {}
     public void onDisable() {}

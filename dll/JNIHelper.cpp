@@ -7,6 +7,7 @@
 #include <psapi.h>
 #include <algorithm>
 #include "LogWindow.h"
+#include <imgui.h>
 
 extern JavaVM* g_jvm;
 extern JNIEnv* g_env;
@@ -494,23 +495,115 @@ JNIEXPORT jboolean JNICALL Java_com_crucifix_client_gui_ClickGUI_isImGuiAvailabl
     return g_ImGuiAvailable ? JNI_TRUE : JNI_FALSE;
 }
 
-// Register native methods
-void RegisterNativeMethods(JNIEnv* env) {
-    if (!env) return;
-    
-    // Register ClickGUI native methods
+// ImGui rendering methods
+JNIEXPORT void JNICALL Java_com_crucifix_client_gui_ClickGUI_nBegin(JNIEnv* env, jobject obj, jstring name, jint flags) {
+    const char* nameStr = env->GetStringUTFChars(name, nullptr);
+    ImGui::Begin(nameStr, nullptr, flags);
+    env->ReleaseStringUTFChars(name, nameStr);
+}
+
+JNIEXPORT void JNICALL Java_com_crucifix_client_gui_ClickGUI_nEnd(JNIEnv* env, jobject obj) {
+    ImGui::End();
+}
+
+JNIEXPORT void JNICALL Java_com_crucifix_client_gui_ClickGUI_nText(JNIEnv* env, jobject obj, jstring text) {
+    const char* textStr = env->GetStringUTFChars(text, nullptr);
+    ImGui::Text("%s", textStr);
+    env->ReleaseStringUTFChars(text, textStr);
+}
+
+JNIEXPORT void JNICALL Java_com_crucifix_client_gui_ClickGUI_nSeparator(JNIEnv* env, jobject obj) {
+    ImGui::Separator();
+}
+
+JNIEXPORT jboolean JNICALL Java_com_crucifix_client_gui_ClickGUI_nCollapsingHeader(JNIEnv* env, jobject obj, jstring label) {
+    const char* labelStr = env->GetStringUTFChars(label, nullptr);
+    bool result = ImGui::CollapsingHeader(labelStr);
+    env->ReleaseStringUTFChars(label, labelStr);
+    return result ? JNI_TRUE : JNI_FALSE;
+}
+
+JNIEXPORT jboolean JNICALL Java_com_crucifix_client_gui_ClickGUI_nCheckbox(JNIEnv* env, jobject obj, jstring label, jboolean value) {
+    const char* labelStr = env->GetStringUTFChars(label, nullptr);
+    bool val = (value == JNI_TRUE);
+    bool result = ImGui::Checkbox(labelStr, &val);
+    env->ReleaseStringUTFChars(label, labelStr);
+    return result ? JNI_TRUE : JNI_FALSE;
+}
+
+JNIEXPORT jboolean JNICALL Java_com_crucifix_client_gui_ClickGUI_nButton(JNIEnv* env, jobject obj, jstring label) {
+    const char* labelStr = env->GetStringUTFChars(label, nullptr);
+    bool result = ImGui::Button(labelStr);
+    env->ReleaseStringUTFChars(label, labelStr);
+    return result ? JNI_TRUE : JNI_FALSE;
+}
+
+JNIEXPORT void JNICALL Java_com_crucifix_client_gui_ClickGUI_nSameLine(JNIEnv* env, jobject obj) {
+    ImGui::SameLine();
+}
+
+JNIEXPORT void JNICALL Java_com_crucifix_client_gui_ClickGUI_nPushStyleColor(JNIEnv* env, jobject obj, jint idx, jfloat r, jfloat g, jfloat b, jfloat a) {
+    ImGui::PushStyleColor(idx, ImVec4(r, g, b, a));
+}
+
+JNIEXPORT void JNICALL Java_com_crucifix_client_gui_ClickGUI_nPopStyleColor(JNIEnv* env, jobject obj) {
+    ImGui::PopStyleColor();
+}
+
+JNIEXPORT void JNICALL Java_com_crucifix_client_gui_ClickGUI_nPushStyleVar(JNIEnv* env, jobject obj, jint idx, jfloat value) {
+    ImGui::PushStyleVar(idx, value);
+}
+
+JNIEXPORT void JNICALL Java_com_crucifix_client_gui_ClickGUI_nPopStyleVar(JNIEnv* env, jobject obj) {
+    ImGui::PopStyleVar();
+}
+
+JNIEXPORT void JNICALL Java_com_crucifix_client_gui_ClickGUI_nSetNextWindowSize(JNIEnv* env, jobject obj, jfloat w, jfloat h) {
+    ImGui::SetNextWindowSize(ImVec2(w, h));
+}
+
+JNIEXPORT void JNICALL Java_com_crucifix_client_gui_ClickGUI_nSetNextWindowPos(JNIEnv* env, jobject obj, jfloat x, jfloat y) {
+    ImGui::SetNextWindowPos(ImVec2(x, y));
+}
+
+JNIEXPORT void JNICALL Java_com_crucifix_client_gui_ClickGUI_nSetNextWindowBgAlpha(JNIEnv* env, jobject obj, jfloat alpha) {
+    ImGui::SetNextWindowBgAlpha(alpha);
+}
+
+// Register all ClickGUI native methods
+void RegisterClickGUINatives(JNIEnv* env) {
     jclass clickGUIClass = env->FindClass("com/crucifix/client/gui/ClickGUI");
-    if (clickGUIClass != nullptr) {
-        JNINativeMethod methods[] = {
-            {"isImGuiAvailable", "()Z", (void*)Java_com_crucifix_client_gui_ClickGUI_isImGuiAvailable}
-        };
-        jint result = env->RegisterNatives(clickGUIClass, methods, 1);
-        if (result == JNI_OK) {
-            LogInfo("Registered ClickGUI native methods");
-        } else {
-            LogError("Failed to register ClickGUI native methods");
-        }
-    } else {
+    if (clickGUIClass == nullptr) {
+        printf("[JNI] Could not find ClickGUI class!\n");
         LogError("Could not find ClickGUI class");
+        return;
+    }
+    
+    JNINativeMethod methods[] = {
+        {"isImGuiAvailable", "()Z", (void*)Java_com_crucifix_client_gui_ClickGUI_isImGuiAvailable},
+        {"nBegin", "(Ljava/lang/String;I)V", (void*)Java_com_crucifix_client_gui_ClickGUI_nBegin},
+        {"nEnd", "()V", (void*)Java_com_crucifix_client_gui_ClickGUI_nEnd},
+        {"nText", "(Ljava/lang/String;)V", (void*)Java_com_crucifix_client_gui_ClickGUI_nText},
+        {"nSeparator", "()V", (void*)Java_com_crucifix_client_gui_ClickGUI_nSeparator},
+        {"nCollapsingHeader", "(Ljava/lang/String;)Z", (void*)Java_com_crucifix_client_gui_ClickGUI_nCollapsingHeader},
+        {"nCheckbox", "(Ljava/lang/String;Z)Z", (void*)Java_com_crucifix_client_gui_ClickGUI_nCheckbox},
+        {"nButton", "(Ljava/lang/String;)Z", (void*)Java_com_crucifix_client_gui_ClickGUI_nButton},
+        {"nSameLine", "()V", (void*)Java_com_crucifix_client_gui_ClickGUI_nSameLine},
+        {"nPushStyleColor", "(IFFFF)V", (void*)Java_com_crucifix_client_gui_ClickGUI_nPushStyleColor},
+        {"nPopStyleColor", "()V", (void*)Java_com_crucifix_client_gui_ClickGUI_nPopStyleColor},
+        {"nPushStyleVar", "(IF)V", (void*)Java_com_crucifix_client_gui_ClickGUI_nPushStyleVar},
+        {"nPopStyleVar", "()V", (void*)Java_com_crucifix_client_gui_ClickGUI_nPopStyleVar},
+        {"nSetNextWindowSize", "(FF)V", (void*)Java_com_crucifix_client_gui_ClickGUI_nSetNextWindowSize},
+        {"nSetNextWindowPos", "(FF)V", (void*)Java_com_crucifix_client_gui_ClickGUI_nSetNextWindowPos},
+        {"nSetNextWindowBgAlpha", "(F)V", (void*)Java_com_crucifix_client_gui_ClickGUI_nSetNextWindowBgAlpha}
+    };
+    
+    int result = env->RegisterNatives(clickGUIClass, methods, sizeof(methods) / sizeof(methods[0]));
+    if (result != JNI_OK) {
+        printf("[JNI] Failed to register ClickGUI natives! Error: %d\n", result);
+        LogError("Failed to register ClickGUI native methods");
+    } else {
+        printf("[JNI] Registered %d ClickGUI native methods\n", sizeof(methods) / sizeof(methods[0]));
+        LogInfo("Registered ClickGUI native methods");
     }
 }

@@ -19,3 +19,4 @@ void FirePacketEvent(void* packet, bool cancelled);
 
 // Native method registration
 void RegisterNativeMethods(JNIEnv* env);
+void RegisterClickGUINatives(JNIEnv* env);

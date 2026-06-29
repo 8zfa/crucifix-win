@@ -249,7 +249,7 @@ void InitializeCrucifix()
                                     LogInfo("Java init() called successfully");
                                     
                                     // Register native methods
-                                    RegisterNativeMethods(g_env);
+                                    RegisterClickGUINatives(g_env);
                                 }
                             }
                             else

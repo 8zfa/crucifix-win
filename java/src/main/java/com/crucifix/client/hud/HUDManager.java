@@ -10,6 +10,7 @@ import java.util.List;
  * Manages all HUD components
  */
 public class HUDManager {
+    private static HUDManager instance;
     private List<HUDComponent> components;
     private List<Notification> notifications;
     
@@ -17,6 +18,13 @@ public class HUDManager {
         this.components = new ArrayList<>();
         this.notifications = new ArrayList<>();
         initializeComponents();
+    }
+    
+    public static HUDManager getInstance() {
+        if (instance == null) {
+            instance = new HUDManager();
+        }
+        return instance;
     }
     
     private void initializeComponents() {

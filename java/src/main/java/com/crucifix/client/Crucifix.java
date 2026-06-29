@@ -223,8 +223,19 @@ public class Crucifix {
      * Called from C++ render hook
      */
     public static void renderGUI() {
-        if (initialized && ClickGUI.getInstance() != null) {
+        System.out.println("[Crucifix] renderGUI called, initialized=" + initialized);
+        
+        if (!initialized) {
+            System.out.println("[Crucifix] renderGUI called but not initialized");
+            return;
+        }
+        
+        if (ClickGUI.getInstance() != null) {
+            System.out.println("[Crucifix] Calling ClickGUI.render()");
             ClickGUI.getInstance().render();
+            System.out.println("[Crucifix] ClickGUI.render() completed");
+        } else {
+            System.out.println("[Crucifix] ClickGUI instance is null!");
         }
     }
     

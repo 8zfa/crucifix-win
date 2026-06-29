@@ -489,6 +489,7 @@ void FirePacketEvent(void* packet, bool cancelled)
 extern bool g_ImGuiAvailable;
 
 JNIEXPORT jboolean JNICALL Java_com_crucifix_client_gui_ClickGUI_isImGuiAvailable(JNIEnv* env, jobject obj) {
+    printf("[JNI] isImGuiAvailable() called - g_ImGuiAvailable = %d\n", g_ImGuiAvailable);
     LogDebug(("isImGuiAvailable() called - returning " + std::to_string(g_ImGuiAvailable)).c_str());
     return g_ImGuiAvailable ? JNI_TRUE : JNI_FALSE;
 }

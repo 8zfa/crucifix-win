@@ -1,8 +1,13 @@
 #include "HookManager.h"
 #include <iostream>
 #include <detours.h>
+#include <windows.h>
+#include <gl/GL.h>
 #include "JNIHelper.h"
 #include "LogWindow.h"
+#include "imgui.h"
+#include "imgui_impl_win32.h"
+#include "imgui_impl_opengl2.h"
 
 // Hook handles
 static PVOID s_tickHook = nullptr;
@@ -13,6 +18,7 @@ static PVOID s_renderHook = nullptr;
 static void (*s_originalTick)() = nullptr;
 static void (*s_originalPacketSend)() = nullptr;
 static void (*s_originalRenderWorld)() = nullptr;
+static BOOL (WINAPI* s_originalwglSwapBuffers)(HDC) = nullptr;
 
 // External JNI environment (set from dllmain.cpp)
 extern JNIEnv* g_env;
@@ -21,6 +27,9 @@ extern bool g_JavaInitialized;
 
 bool g_ImGuiAvailable = false;
 bool g_JavaRenderInitialized = false;
+
+// Forward declaration
+void CallJavaRender();
 
 // Hook functions
 static void TickHook()
@@ -84,6 +93,55 @@ static void RenderWorldHook()
     }
 }
 
+// wglSwapBuffers hook for ImGui rendering
+static BOOL WINAPI Hooked_wglSwapBuffers(HDC hdc)
+{
+    // Initialize ImGui on first call
+    if (!g_ImGuiAvailable)
+    {
+        printf("[wglSwapBuffers] Initializing ImGui...\n");
+        LogInfo("Initializing ImGui...");
+        
+        IMGUI_CHECKVERSION();
+        ImGui::CreateContext();
+        ImGui::StyleColorsDark();
+        
+        // Get window handle
+        HWND hwnd = WindowFromDC(hdc);
+        if (hwnd)
+        {
+            ImGui_ImplWin32_Init(hwnd);
+            ImGui_ImplOpenGL2_Init();
+            g_ImGuiAvailable = true;
+            printf("[wglSwapBuffers] ImGui initialized successfully! g_ImGuiAvailable = %d\n", g_ImGuiAvailable);
+            LogInfo("ImGui initialized successfully!");
+        }
+        else
+        {
+            printf("[wglSwapBuffers] Failed to get window handle!\n");
+            LogError("Failed to get window handle for ImGui");
+        }
+    }
+    
+    // New frame for ImGui
+    if (g_ImGuiAvailable)
+    {
+        ImGui_ImplOpenGL2_NewFrame();
+        ImGui_ImplWin32_NewFrame();
+        ImGui::NewFrame();
+        
+        // Call Java render
+        CallJavaRender();
+        
+        // Render ImGui
+        ImGui::Render();
+        ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
+    }
+    
+    // Call original
+    return s_originalwglSwapBuffers(hdc);
+}
+
 void CallJavaRender() {
     if (g_jvm == nullptr) return;
     if (!g_JavaInitialized) return;
@@ -127,10 +185,34 @@ void CallJavaRender() {
 void InitializeHooks()
 {
     std::cout << "[HookManager] Initializing hooks..." << std::endl;
+    LogInfo("Initializing hooks...");
     
     // Initialize Detours
     DetourTransactionBegin();
     DetourUpdateThread(GetCurrentThread());
+    
+    // Hook wglSwapBuffers for ImGui rendering
+    HMODULE opengl32 = GetModuleHandleA("opengl32.dll");
+    if (opengl32)
+    {
+        s_originalwglSwapBuffers = (BOOL (WINAPI*)(HDC))GetProcAddress(opengl32, "wglSwapBuffers");
+        if (s_originalwglSwapBuffers)
+        {
+            DetourAttach(&(PVOID&)s_originalwglSwapBuffers, Hooked_wglSwapBuffers);
+            printf("[HookManager] wglSwapBuffers hooked\n");
+            LogInfo("wglSwapBuffers hooked successfully");
+        }
+        else
+        {
+            printf("[HookManager] Failed to get wglSwapBuffers address\n");
+            LogError("Failed to get wglSwapBuffers address");
+        }
+    }
+    else
+    {
+        printf("[HookManager] Failed to get opengl32.dll handle\n");
+        LogError("Failed to get opengl32.dll handle");
+    }
     
     // Note: In a real implementation, you would need to find the actual addresses
     // of Minecraft methods using pattern scanning or MCP mappings
@@ -145,10 +227,12 @@ void InitializeHooks()
     if (result == NO_ERROR)
     {
         std::cout << "[HookManager] Hooks installed successfully" << std::endl;
+        LogInfo("Hooks installed successfully");
     }
     else
     {
         std::cout << "[HookManager] Failed to install hooks: " << result << std::endl;
+        LogError("Failed to install hooks");
     }
 }
 

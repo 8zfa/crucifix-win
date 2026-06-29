@@ -51,9 +51,26 @@ public class ClickGUI {
     
     // This is called from the wglSwapBuffers hook
     public void render() {
-        if (!open) return;
+        System.out.println("[ClickGUI] render() called, open=" + open);
+        
+        if (!open) {
+            return;
+        }
         
         try {
+            System.out.println("[ClickGUI] Checking ImGui availability...");
+            
+            // Check if ImGui is available
+            boolean imGuiAvailable = isImGuiAvailable();
+            System.out.println("[ClickGUI] ImGui available: " + imGuiAvailable);
+            
+            if (!imGuiAvailable) {
+                System.out.println("[ClickGUI] ImGui not available yet, skipping render");
+                return;
+            }
+            
+            System.out.println("[ClickGUI] Starting render...");
+            
             // Animation
             if (animationProgress < 1f) {
                 animationProgress = Math.min(1f, animationProgress + 0.05f);
@@ -62,16 +79,12 @@ public class ClickGUI {
             float scale = 0.8f + (0.2f * animationProgress);
             float alpha = animationProgress;
             
-            // Check if ImGui is available
-            if (!isImGuiAvailable()) {
-                System.out.println("[ClickGUI] ImGui not available");
-                return;
-            }
-            
             // Use ImGui to render panels
             for (Panel panel : panels) {
                 panel.render(0, 0, 0);
             }
+            
+            System.out.println("[ClickGUI] Render complete");
             
         } catch (Exception e) {
             System.out.println("[ClickGUI] Render error: " + e.getMessage());
@@ -86,10 +99,6 @@ public class ClickGUI {
         open = !open;
         animationProgress = 0f;
         System.out.println("[ClickGUI] Toggled: " + open);
-    }
-    
-    public boolean isOpen() {
-        return open;
     }
     
     public Theme getTheme() {

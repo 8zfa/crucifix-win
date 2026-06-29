@@ -572,12 +572,21 @@ JNIEXPORT void JNICALL Java_com_crucifix_client_gui_ClickGUI_nSetNextWindowBgAlp
 
 // Register all ClickGUI native methods
 void RegisterClickGUINatives(JNIEnv* env) {
+    printf("[JNI] Registering ClickGUI natives...\n");
+    LogInfo("Registering ClickGUI natives...");
+    
     jclass clickGUIClass = env->FindClass("com/crucifix/client/gui/ClickGUI");
     if (clickGUIClass == nullptr) {
-        printf("[JNI] Could not find ClickGUI class!\n");
+        printf("[JNI] ERROR: Could not find ClickGUI class!\n");
         LogError("Could not find ClickGUI class");
+        if (env->ExceptionCheck()) {
+            env->ExceptionDescribe();
+            env->ExceptionClear();
+        }
         return;
     }
+    printf("[JNI] Found ClickGUI class\n");
+    LogInfo("Found ClickGUI class");
     
     JNINativeMethod methods[] = {
         {"isImGuiAvailable", "()Z", (void*)Java_com_crucifix_client_gui_ClickGUI_isImGuiAvailable},
@@ -598,12 +607,19 @@ void RegisterClickGUINatives(JNIEnv* env) {
         {"nSetNextWindowBgAlpha", "(F)V", (void*)Java_com_crucifix_client_gui_ClickGUI_nSetNextWindowBgAlpha}
     };
     
-    int result = env->RegisterNatives(clickGUIClass, methods, sizeof(methods) / sizeof(methods[0]));
+    int numMethods = sizeof(methods) / sizeof(methods[0]);
+    printf("[JNI] Registering %d methods...\n", numMethods);
+    
+    jint result = env->RegisterNatives(clickGUIClass, methods, numMethods);
     if (result != JNI_OK) {
-        printf("[JNI] Failed to register ClickGUI natives! Error: %d\n", result);
-        LogError("Failed to register ClickGUI native methods");
+        printf("[JNI] ERROR: RegisterNatives failed! Error code: %d\n", result);
+        LogError(("RegisterNatives failed! Error code: " + std::to_string(result)).c_str());
+        if (env->ExceptionCheck()) {
+            env->ExceptionDescribe();
+            env->ExceptionClear();
+        }
     } else {
-        printf("[JNI] Registered %d ClickGUI native methods\n", sizeof(methods) / sizeof(methods[0]));
-        LogInfo("Registered ClickGUI native methods");
+        printf("[JNI] Successfully registered %d ClickGUI native methods!\n", numMethods);
+        LogInfo(("Successfully registered " + std::to_string(numMethods) + " ClickGUI native methods").c_str());
     }
 }

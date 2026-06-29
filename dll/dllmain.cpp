@@ -165,6 +165,26 @@ void LogToFile(const std::string& message)
     std::cout << message << std::endl;
 }
 
+// OnJVMReady function - called when JVM is ready and natives need to be registered
+void OnJVMReady(JNIEnv* env) {
+    printf("[JNI] JVM ready, registering natives...\n");
+    LogInfo("JVM ready, registering natives...");
+    
+    // Register ClickGUI natives
+    RegisterClickGUINatives(env);
+    
+    // Call Crucifix.init()
+    jclass crucifixClass = env->FindClass("com/crucifix/client/Crucifix");
+    if (crucifixClass != nullptr) {
+        jmethodID initMethod = env->GetStaticMethodID(crucifixClass, "init", "()V");
+        if (initMethod != nullptr) {
+            env->CallStaticVoidMethod(crucifixClass, initMethod);
+            printf("[JNI] Called Crucifix.init()\n");
+            LogInfo("Called Crucifix.init()");
+        }
+    }
+}
+
 void InitializeCrucifix()
 {
     // Create separate log window
@@ -248,8 +268,8 @@ void InitializeCrucifix()
                                     LogToFile("[CRUCIFIX] Java init() called successfully");
                                     LogInfo("Java init() called successfully");
                                     
-                                    // Register native methods
-                                    RegisterClickGUINatives(g_env);
+                                    // Register native methods and call init via OnJVMReady
+                                    OnJVMReady(g_env);
                                 }
                             }
                             else

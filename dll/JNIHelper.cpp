@@ -589,22 +589,22 @@ void RegisterClickGUINatives(JNIEnv* env) {
     LogInfo("Found ClickGUI class");
     
     JNINativeMethod methods[] = {
-        {"isImGuiAvailable", "()Z", (void*)Java_com_crucifix_client_gui_ClickGUI_isImGuiAvailable},
-        {"nBegin", "(Ljava/lang/String;I)V", (void*)Java_com_crucifix_client_gui_ClickGUI_nBegin},
-        {"nEnd", "()V", (void*)Java_com_crucifix_client_gui_ClickGUI_nEnd},
-        {"nText", "(Ljava/lang/String;)V", (void*)Java_com_crucifix_client_gui_ClickGUI_nText},
-        {"nSeparator", "()V", (void*)Java_com_crucifix_client_gui_ClickGUI_nSeparator},
-        {"nCollapsingHeader", "(Ljava/lang/String;)Z", (void*)Java_com_crucifix_client_gui_ClickGUI_nCollapsingHeader},
-        {"nCheckbox", "(Ljava/lang/String;Z)Z", (void*)Java_com_crucifix_client_gui_ClickGUI_nCheckbox},
-        {"nButton", "(Ljava/lang/String;)Z", (void*)Java_com_crucifix_client_gui_ClickGUI_nButton},
-        {"nSameLine", "()V", (void*)Java_com_crucifix_client_gui_ClickGUI_nSameLine},
-        {"nPushStyleColor", "(IFFFF)V", (void*)Java_com_crucifix_client_gui_ClickGUI_nPushStyleColor},
-        {"nPopStyleColor", "()V", (void*)Java_com_crucifix_client_gui_ClickGUI_nPopStyleColor},
-        {"nPushStyleVar", "(IF)V", (void*)Java_com_crucifix_client_gui_ClickGUI_nPushStyleVar},
-        {"nPopStyleVar", "()V", (void*)Java_com_crucifix_client_gui_ClickGUI_nPopStyleVar},
-        {"nSetNextWindowSize", "(FF)V", (void*)Java_com_crucifix_client_gui_ClickGUI_nSetNextWindowSize},
-        {"nSetNextWindowPos", "(FF)V", (void*)Java_com_crucifix_client_gui_ClickGUI_nSetNextWindowPos},
-        {"nSetNextWindowBgAlpha", "(F)V", (void*)Java_com_crucifix_client_gui_ClickGUI_nSetNextWindowBgAlpha}
+        {(char*)"isImGuiAvailable", (char*)"()Z", (void*)Java_com_crucifix_client_gui_ClickGUI_isImGuiAvailable},
+        {(char*)"nBegin", (char*)"(Ljava/lang/String;I)V", (void*)Java_com_crucifix_client_gui_ClickGUI_nBegin},
+        {(char*)"nEnd", (char*)"()V", (void*)Java_com_crucifix_client_gui_ClickGUI_nEnd},
+        {(char*)"nText", (char*)"(Ljava/lang/String;)V", (void*)Java_com_crucifix_client_gui_ClickGUI_nText},
+        {(char*)"nSeparator", (char*)"()V", (void*)Java_com_crucifix_client_gui_ClickGUI_nSeparator},
+        {(char*)"nCollapsingHeader", (char*)"(Ljava/lang/String;)Z", (void*)Java_com_crucifix_client_gui_ClickGUI_nCollapsingHeader},
+        {(char*)"nCheckbox", (char*)"(Ljava/lang/String;Z)Z", (void*)Java_com_crucifix_client_gui_ClickGUI_nCheckbox},
+        {(char*)"nButton", (char*)"(Ljava/lang/String;)Z", (void*)Java_com_crucifix_client_gui_ClickGUI_nButton},
+        {(char*)"nSameLine", (char*)"()V", (void*)Java_com_crucifix_client_gui_ClickGUI_nSameLine},
+        {(char*)"nPushStyleColor", (char*)"(IFFFF)V", (void*)Java_com_crucifix_client_gui_ClickGUI_nPushStyleColor},
+        {(char*)"nPopStyleColor", (char*)"()V", (void*)Java_com_crucifix_client_gui_ClickGUI_nPopStyleColor},
+        {(char*)"nPushStyleVar", (char*)"(IF)V", (void*)Java_com_crucifix_client_gui_ClickGUI_nPushStyleVar},
+        {(char*)"nPopStyleVar", (char*)"()V", (void*)Java_com_crucifix_client_gui_ClickGUI_nPopStyleVar},
+        {(char*)"nSetNextWindowSize", (char*)"(FF)V", (void*)Java_com_crucifix_client_gui_ClickGUI_nSetNextWindowSize},
+        {(char*)"nSetNextWindowPos", (char*)"(FF)V", (void*)Java_com_crucifix_client_gui_ClickGUI_nSetNextWindowPos},
+        {(char*)"nSetNextWindowBgAlpha", (char*)"(F)V", (void*)Java_com_crucifix_client_gui_ClickGUI_nSetNextWindowBgAlpha}
     };
     
     int numMethods = sizeof(methods) / sizeof(methods[0]);

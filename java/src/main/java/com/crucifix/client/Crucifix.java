@@ -12,8 +12,7 @@ public class Crucifix {
     public static final String VERSION = "1.0.0";
     public static final String NAME = "CRUCIFIX.WIN";
     
-    // SINGLETON PATTERN - Fix the null instance issue
-    private static Crucifix instance = new Crucifix();  // ✅ Initialize immediately!
+    private static Crucifix instance;
     private boolean lunarBridgeInitialized = false;
     private boolean modulesInitialized = false;
     private boolean clickGUIInitialized = false;
@@ -29,6 +28,10 @@ public class Crucifix {
     }
     
     public static Crucifix getInstance() {
+        if (instance == null) {
+            System.out.println("[CRUCIFIX] Creating new instance...");
+            instance = new Crucifix();
+        }
         return instance;
     }
     
@@ -44,18 +47,11 @@ public class Crucifix {
         return clickGUI;
     }
     
-    // Called from JVMTI hook (C++)
     public static void init() {
-        System.out.println("[CRUCIFIX] init() method called from JVMTI");
+        System.out.println("[CRUCIFIX] init() called from JVMTI");
         
         try {
-            // Use the instance safely
             Crucifix inst = getInstance();
-            if (inst == null) {
-                System.out.println("[CRUCIFIX] ERROR: Instance is null! Creating new...");
-                instance = new Crucifix();
-                inst = instance;
-            }
             
             System.out.println("[CRUCIFIX] Waiting 5 seconds for Lunar to fully load...");
             Thread.sleep(5000);
@@ -64,56 +60,45 @@ public class Crucifix {
             inst.lunarBridgeInitialized = LunarBridge.initialize();
             
             if (inst.lunarBridgeInitialized) {
-                System.out.println("[CRUCIFIX] LunarBridge initialized successfully!");
-                
+                System.out.println("[CRUCIFIX] LunarBridge initialized!");
                 Object mc = LunarBridge.getMinecraft();
+                
                 if (mc != null) {
-                    System.out.println("[CRUCIFIX] Got Minecraft instance: " + mc);
-                    
-                    // Initialize modules
+                    System.out.println("[CRUCIFIX] Got Minecraft: " + mc);
                     ModuleManager.initModules(mc);
                     inst.modulesInitialized = true;
                     System.out.println("[CRUCIFIX] Modules initialized!");
                     
-                    // Initialize ClickGUI
                     inst.clickGUI = ClickGUI.getInstance();
                     inst.clickGUIInitialized = true;
                     System.out.println("[CRUCIFIX] ClickGUI initialized!");
                     
-                    // Initialize HUD
                     HUDManager.getInstance();
                     System.out.println("[CRUCIFIX] HUD initialized!");
                     
-                    System.out.println("[CRUCIFIX] ===== INITIALIZATION COMPLETE! =====");
+                    System.out.println("[CRUCIFIX] ===== ALL SYSTEMS GO! =====");
                 } else {
-                    System.out.println("[CRUCIFIX] Minecraft instance is null!");
+                    System.out.println("[CRUCIFIX] Minecraft is null!");
+                    scheduleRetry();
                 }
             } else {
-                System.out.println("[CRUCIFIX] LunarBridge initialization failed!");
-                // Schedule retry
+                System.out.println("[CRUCIFIX] LunarBridge failed!");
                 scheduleRetry();
             }
             
         } catch (Throwable t) {
-            System.out.println("[CRUCIFIX] Exception in init(): " + t.getMessage());
+            System.out.println("[CRUCIFIX] Error: " + t.getMessage());
             t.printStackTrace();
             
-            // Write to file
             try {
                 StringWriter sw = new StringWriter();
                 PrintWriter pw = new PrintWriter(sw);
                 t.printStackTrace(pw);
-                String stackTrace = sw.toString();
-                
                 FileWriter fw = new FileWriter(System.getProperty("user.home") + "/crucifix_error.log");
-                fw.write(stackTrace);
+                fw.write(sw.toString());
                 fw.close();
-                System.out.println("[CRUCIFIX] Error details written to crucifix_error.log");
-            } catch (Exception e) {
-                // Ignore
-            }
+            } catch (Exception e) {}
             
-            // Retry
             scheduleRetry();
         }
     }
@@ -121,30 +106,37 @@ public class Crucifix {
     private static void scheduleRetry() {
         new Thread(() -> {
             try {
-                System.out.println("[CRUCIFIX] Retrying initialization in 5 seconds...");
-                Thread.sleep(5000);
-                System.out.println("[CRUCIFIX] Retrying...");
+                Thread.sleep(3000);
+                System.out.println("[CRUCIFIX] Retrying init...");
                 init();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            } catch (InterruptedException e) {}
         }).start();
     }
     
-    // Called from C++ when RSHIFT is pressed
     public static void toggleClickGUI() {
-        if (ClickGUI.getInstance() != null) {
-            ClickGUI.getInstance().toggle();
-            System.out.println("[CRUCIFIX] ClickGUI toggled");
-        } else {
-            System.out.println("[CRUCIFIX] ClickGUI not available");
+        System.out.println("[CRUCIFIX] toggleClickGUI() called");
+        try {
+            ClickGUI clickGUI = ClickGUI.getInstance();
+            if (clickGUI != null) {
+                clickGUI.toggle();
+                System.out.println("[CRUCIFIX] ClickGUI toggled: " + clickGUI.isOpen());
+            } else {
+                System.out.println("[CRUCIFIX] ClickGUI is null!");
+            }
+        } catch (Throwable t) {
+            System.out.println("[CRUCIFIX] toggleClickGUI error: " + t.getMessage());
+            t.printStackTrace();
         }
     }
     
-    // Called from C++ render hook
     public static void renderGUI() {
-        if (instance != null && instance.clickGUIInitialized) {
-            ClickGUI.getInstance().render();
+        try {
+            ClickGUI clickGUI = ClickGUI.getInstance();
+            if (clickGUI != null && clickGUI.isOpen()) {
+                clickGUI.render();
+            }
+        } catch (Throwable t) {
+            // Silent fail to avoid spam
         }
     }
     

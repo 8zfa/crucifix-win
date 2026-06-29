@@ -15,45 +15,64 @@ public class ClickGUI {
     private ClickGUI() {
         System.out.println("[ClickGUI] Creating instance...");
         theme = new CrucifixDark();
-        System.out.println("[ClickGUI] Created instance");
+        
+        // Check ImGui availability
+        try {
+            imGuiAvailable = isImGuiAvailable();
+            System.out.println("[ClickGUI] ImGui available: " + imGuiAvailable);
+        } catch (Throwable t) {
+            System.out.println("[ClickGUI] ImGui check failed: " + t.getMessage());
+            imGuiAvailable = false;
+        }
     }
     
     public static ClickGUI getInstance() {
         if (instance == null) {
+            System.out.println("[ClickGUI] Creating new instance...");
             instance = new ClickGUI();
         }
         return instance;
     }
     
+    // Called from C++ wglSwapBuffers hook
     public void render() {
-        if (renderCount < 5) {
-            System.out.println("[ClickGUI] render() called #" + renderCount + ", open=" + open);
-            renderCount++;
+        renderCount++;
+        if (renderCount <= 5) {
+            System.out.println("[ClickGUI] render() #" + renderCount + ", open=" + open + ", imGuiAvailable=" + imGuiAvailable);
         }
         
         if (!open) return;
         
-        imGuiAvailable = isImGuiAvailable();
-        if (renderCount < 5) {
-            System.out.println("[ClickGUI] ImGui available: " + imGuiAvailable);
-        }
-        
-        if (!imGuiAvailable) return;
-        
         try {
+            imGuiAvailable = isImGuiAvailable();
+            if (renderCount <= 5) {
+                System.out.println("[ClickGUI] ImGui available: " + imGuiAvailable);
+            }
+            
+            if (!imGuiAvailable) return;
+            
+            // Animation
             if (animationProgress < 1f) {
                 animationProgress = Math.min(1f, animationProgress + 0.05f);
             }
             
+            // === RENDER TEST WINDOW ===
             nBegin("Crucifix Client", 0);
             nText("ClickGUI is working!");
             nSeparator();
             nText("Press RSHIFT to close");
-            nText("Modules loaded: " + ModuleManager.getInstance().getModules().size());
+            nText("Modules: " + ModuleManager.getInstance().getModules().size());
             nEnd();
-        } catch (Exception e) {
-            System.out.println("[ClickGUI] Render error: " + e.getMessage());
-            e.printStackTrace();
+            
+            if (renderCount == 1) {
+                System.out.println("[ClickGUI] First successful render!");
+            }
+            
+        } catch (Throwable t) {
+            if (renderCount <= 5) {
+                System.out.println("[ClickGUI] Render error: " + t.getMessage());
+                t.printStackTrace();
+            }
         }
     }
     
@@ -72,10 +91,22 @@ public class ClickGUI {
         return theme;
     }
     
+    // Native methods - these are registered in C++
     private native boolean isImGuiAvailable();
     private native void nBegin(String name, int flags);
     private native void nEnd();
     private native void nText(String text);
     private native void nSeparator();
+    private native boolean nCollapsingHeader(String label);
+    private native boolean nCheckbox(String label, boolean value);
+    private native boolean nButton(String label);
+    private native void nSameLine();
+    private native void nPushStyleColor(int idx, float r, float g, float b, float a);
+    private native void nPopStyleColor();
+    private native void nPushStyleVar(int idx, float value);
+    private native void nPopStyleVar();
+    private native void nSetNextWindowSize(float w, float h);
+    private native void nSetNextWindowPos(float x, float y);
+    private native void nSetNextWindowBgAlpha(float alpha);
 }
 

@@ -1,8 +1,6 @@
 C:\Users\raw\Desktop\crucifix.win\injector\bin\Release\CrucifixInjector.exe
 C:\Users\raw\Desktop\crucifix.win\injector\bin\Release\CrucifixInjector.pdb
 C:\Users\raw\Desktop\crucifix.win\injector\obj\Release\CrucifixInjector.csproj.AssemblyReference.cache
-C:\Users\raw\Desktop\crucifix.win\injector\obj\Release\CrucifixInjector.MainForm.resources
-C:\Users\raw\Desktop\crucifix.win\injector\obj\Release\CrucifixInjector.csproj.GenerateResource.cache
 C:\Users\raw\Desktop\crucifix.win\injector\obj\Release\CrucifixInjector.csproj.CoreCompileInputs.cache
 C:\Users\raw\Desktop\crucifix.win\injector\obj\Release\CrucifixInjector.exe
 C:\Users\raw\Desktop\crucifix.win\injector\obj\Release\CrucifixInjector.pdb

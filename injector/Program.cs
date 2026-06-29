@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
-using System.Windows.Forms;
 
 namespace CrucifixInjector
 {
@@ -55,7 +54,6 @@ namespace CrucifixInjector
         const uint INFINITE = 0xFFFFFFFF;
         const uint WAIT_OBJECT_0 = 0x00000000;
 
-        [STAThread]
         static void Main(string[] args)
         {
             Console.Title = "CRUCIFIX Injector v1.1";

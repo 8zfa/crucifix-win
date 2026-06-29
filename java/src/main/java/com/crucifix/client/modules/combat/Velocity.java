@@ -19,20 +19,31 @@ public class Velocity extends Module {
         addSetting(Setting.createDropdown("Mode", new String[]{"Simple", "AAC", "Hypixel", "Vulcan"}));
     }
     
-    @Override
-    public void onUpdate() {
-        // Implementation would modify velocity packets
-    }
-    
     @SubscribeEvent
     public void onUpdateEvent(UpdateEvent event) {
         if (!isEnabled()) return;
         
-        double horizontal = getSetting("Horizontal").getDoubleValue();
-        double vertical = getSetting("Vertical").getDoubleValue();
-        String mode = getSetting("Mode").getStringValue();
-        
-        // Velocity reduction logic would go here
+        try {
+            Object player = getPlayer();
+            if (player == null) return;
+            
+            double horizontal = getSetting("Horizontal").getDoubleValue();
+            double vertical = getSetting("Vertical").getDoubleValue();
+            String mode = getSetting("Mode").getStringValue();
+            
+            // Reduce velocity by modifying motion fields
+            Double motionX = (Double) getField(player, "motionX");
+            Double motionY = (Double) getField(player, "motionY");
+            Double motionZ = (Double) getField(player, "motionZ");
+            
+            if (motionX != null && motionY != null && motionZ != null) {
+                setField(player, "motionX", motionX * horizontal);
+                setField(player, "motionY", motionY * vertical);
+                setField(player, "motionZ", motionZ * horizontal);
+            }
+        } catch (Exception e) {
+            // Silent fail
+        }
     }
 }
 

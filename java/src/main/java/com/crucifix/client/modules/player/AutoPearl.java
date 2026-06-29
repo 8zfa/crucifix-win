@@ -17,18 +17,24 @@ public class AutoPearl extends Module {
         addSetting(Setting.createSlider("Health", 5.0, 1.0, 10.0, 0.5));
     }
     
-    @Override
-    public void onUpdate() {
-        // Implementation would auto-throw pearls
-    }
-    
     @SubscribeEvent
     public void onUpdateEvent(UpdateEvent event) {
         if (!isEnabled()) return;
         
-        double health = getSetting("Health").getDoubleValue();
-        
-        // Auto pearl logic would go here
+        try {
+            Object player = getPlayer();
+            if (player == null) return;
+            
+            double health = getSetting("Health").getDoubleValue();
+            
+            Float playerHealth = (Float) getField(player, "health");
+            if (playerHealth != null && playerHealth < (float) health) {
+                // Auto throw pearl would trigger here
+                // This is a simplified implementation
+            }
+        } catch (Exception e) {
+            // Silent fail
+        }
     }
 }
 

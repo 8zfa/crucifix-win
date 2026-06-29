@@ -2,6 +2,7 @@ package com.crucifix.client.modules;
 
 import com.crucifix.client.core.EventBus;
 import com.crucifix.client.Crucifix;
+import com.crucifix.client.LunarBridge;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -9,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Base class for all modules
+ * Base class for all modules - uses LunarBridge for Minecraft access
  */
 public abstract class Module {
     private final String name;
@@ -29,6 +30,48 @@ public abstract class Module {
         this.enabled = false;
         this.settings = new HashMap<>();
         this.eventBus = Crucifix.getInstance().getEventBus();
+    }
+    
+    /**
+     * Get the Minecraft instance via LunarBridge
+     */
+    protected Object getMinecraft() {
+        return LunarBridge.getMinecraft();
+    }
+    
+    /**
+     * Get the player instance via LunarBridge
+     */
+    protected Object getPlayer() {
+        return LunarBridge.getPlayer();
+    }
+    
+    /**
+     * Get the world instance via LunarBridge
+     */
+    protected Object getWorld() {
+        return LunarBridge.getWorld();
+    }
+    
+    /**
+     * Get a field value from an object
+     */
+    protected Object getField(Object obj, String fieldName) {
+        return LunarBridge.getField(obj, fieldName);
+    }
+    
+    /**
+     * Set a field value on an object
+     */
+    protected boolean setField(Object obj, String fieldName, Object value) {
+        return LunarBridge.setField(obj, fieldName, value);
+    }
+    
+    /**
+     * Call a method on an object
+     */
+    protected Object callMethod(Object obj, String methodName, Class<?>[] paramTypes, Object... args) {
+        return LunarBridge.callMethod(obj, methodName, paramTypes, args);
     }
     
     /**

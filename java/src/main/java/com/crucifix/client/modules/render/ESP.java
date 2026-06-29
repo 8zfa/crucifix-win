@@ -21,20 +21,23 @@ public class ESP extends Module {
         addSetting(Setting.createToggle("Health", true));
     }
     
-    @Override
-    public void onRender(float partialTicks) {
-        // Implementation would render ESP boxes
-    }
-    
     @SubscribeEvent
     public void onRenderEvent(RenderEvent event) {
         if (!isEnabled()) return;
         
-        boolean players = getSetting("Players").getBooleanValue();
-        boolean mobs = getSetting("Mobs").getBooleanValue();
-        boolean animals = getSetting("Animals").getBooleanValue();
-        
-        // ESP rendering logic would go here
+        try {
+            Object world = getWorld();
+            if (world == null) return;
+            
+            boolean players = getSetting("Players").getBooleanValue();
+            boolean mobs = getSetting("Mobs").getBooleanValue();
+            boolean animals = getSetting("Animals").getBooleanValue();
+            
+            // ESP would draw boxes around entities
+            // This is a simplified implementation - would need OpenGL hooks
+        } catch (Exception e) {
+            // Silent fail
+        }
     }
 }
 

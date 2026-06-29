@@ -17,18 +17,21 @@ public class AntiBot extends Module {
         addSetting(Setting.createDropdown("Mode", new String[]{"Hypixel", "SkyWars", "BedWars", "Practice"}));
     }
     
-    @Override
-    public void onUpdate() {
-        // Implementation would filter bots
-    }
-    
     @SubscribeEvent
     public void onUpdateEvent(UpdateEvent event) {
         if (!isEnabled()) return;
         
-        String mode = getSetting("Mode").getStringValue();
-        
-        // Anti bot logic would go here
+        try {
+            Object world = getWorld();
+            if (world == null) return;
+            
+            String mode = getSetting("Mode").getStringValue();
+            
+            // Anti bot would filter entities based on server-specific patterns
+            // This is a simplified implementation
+        } catch (Exception e) {
+            // Silent fail
+        }
     }
 }
 

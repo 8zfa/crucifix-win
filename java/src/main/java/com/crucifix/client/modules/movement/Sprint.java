@@ -6,14 +6,10 @@ import com.crucifix.client.modules.Category;
 import com.crucifix.client.modules.Module;
 import com.crucifix.client.modules.Setting;
 
-import java.lang.reflect.Field;
-
 /**
  * Automatically sprints
  */
 public class Sprint extends Module {
-    
-    private Field playerSprintingField;
     
     public Sprint() {
         super("Sprint", "Automatically sprints", Category.MOVEMENT, 0);
@@ -22,40 +18,20 @@ public class Sprint extends Module {
         addSetting(Setting.createToggle("Omnidirectional", false));
     }
     
-    @Override
-    public void onEnable() {
-        try {
-            // Cache the sprinting field for performance
-            Class<?> entityPlayerClass = Class.forName("net.minecraft.entity.player.EntityPlayer");
-            playerSprintingField = entityPlayerClass.getDeclaredField("isSprinting");
-            playerSprintingField.setAccessible(true);
-        } catch (Exception e) {
-            System.out.println("[Sprint] Failed to initialize reflection: " + e.getMessage());
-        }
-    }
-    
     @SubscribeEvent
     public void onUpdateEvent(UpdateEvent event) {
         if (!isEnabled()) return;
         
         try {
-            // Get Minecraft instance
-            Class<?> minecraftClass = Class.forName("net.minecraft.client.Minecraft");
-            Object minecraft = minecraftClass.getMethod("getMinecraft").invoke(null);
-            if (minecraft == null) return;
-            
-            // Get the player
-            Object player = minecraftClass.getField("thePlayer").get(minecraft);
+            // Get player via LunarBridge
+            Object player = getPlayer();
             if (player == null) return;
             
             // Check if player is moving
-            Field moveForwardField = player.getClass().getDeclaredField("moveForward");
-            moveForwardField.setAccessible(true);
-            float moveForward = moveForwardField.getFloat(player);
+            Float moveForward = (Float) getField(player, "moveForward");
+            Float moveStrafe = (Float) getField(player, "moveStrafe");
             
-            Field moveStrafeField = player.getClass().getDeclaredField("moveStrafe");
-            moveStrafeField.setAccessible(true);
-            float moveStrafe = moveStrafeField.getFloat(player);
+            if (moveForward == null || moveStrafe == null) return;
             
             boolean allDirections = getSetting("AllDirections").getBooleanValue();
             boolean omnidirectional = getSetting("Omnidirectional").getBooleanValue();
@@ -75,23 +51,16 @@ public class Sprint extends Module {
             }
             
             // Check if player has enough food
-            Field foodStatsField = player.getClass().getDeclaredField("foodStats");
-            foodStatsField.setAccessible(true);
-            Object foodStats = foodStatsField.get(player);
+            Object foodStats = getField(player, "foodStats");
             if (foodStats != null) {
-                Field foodLevelField = foodStats.getClass().getDeclaredField("foodLevel");
-                foodLevelField.setAccessible(true);
-                int foodLevel = foodLevelField.getInt(foodStats);
-                
-                if (foodLevel <= 6) {
+                Integer foodLevel = (Integer) getField(foodStats, "foodLevel");
+                if (foodLevel != null && foodLevel <= 6) {
                     shouldSprint = false;
                 }
             }
             
             // Set sprinting state
-            if (playerSprintingField != null) {
-                playerSprintingField.setBoolean(player, shouldSprint);
-            }
+            setField(player, "isSprinting", shouldSprint);
             
         } catch (Exception e) {
             // Silent fail to avoid spam

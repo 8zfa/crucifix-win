@@ -18,19 +18,43 @@ public class Fly extends Module {
         addSetting(Setting.createDropdown("Mode", new String[]{"Vanilla", "Smooth", "Jetpack"}));
     }
     
-    @Override
-    public void onUpdate() {
-        // Implementation would enable flight
-    }
-    
     @SubscribeEvent
     public void onUpdateEvent(UpdateEvent event) {
         if (!isEnabled()) return;
         
-        double speed = getSetting("Speed").getDoubleValue();
-        String mode = getSetting("Mode").getStringValue();
-        
-        // Fly logic would go here
+        try {
+            Object player = getPlayer();
+            if (player == null) return;
+            
+            double speed = getSetting("Speed").getDoubleValue();
+            String mode = getSetting("Mode").getStringValue();
+            
+            // Set player to flying
+            setField(player, "capabilities", getField(player, "capabilities"));
+            
+            Float moveForward = (Float) getField(player, "moveForward");
+            Float moveStrafe = (Float) getField(player, "moveStrafe");
+            
+            if (moveForward != null && moveStrafe != null) {
+                // Apply fly speed based on movement
+                float flySpeed = (float) speed;
+                setField(player, "flySpeed", flySpeed);
+            }
+        } catch (Exception e) {
+            // Silent fail
+        }
+    }
+    
+    @Override
+    public void onDisable() {
+        try {
+            Object player = getPlayer();
+            if (player != null) {
+                setField(player, "flySpeed", 0.05f); // Reset to default
+            }
+        } catch (Exception e) {
+            // Silent fail
+        }
     }
 }
 

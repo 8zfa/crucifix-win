@@ -19,20 +19,23 @@ public class Nametags extends Module {
         addSetting(Setting.createSlider("Scale", 1.0, 0.5, 2.0, 0.1));
     }
     
-    @Override
-    public void onRender(float partialTicks) {
-        // Implementation would render nametags
-    }
-    
     @SubscribeEvent
     public void onRenderEvent(RenderEvent event) {
         if (!isEnabled()) return;
         
-        boolean health = getSetting("Health").getBooleanValue();
-        boolean distance = getSetting("Distance").getBooleanValue();
-        double scale = getSetting("Scale").getDoubleValue();
-        
-        // Nametags rendering logic would go here
+        try {
+            Object world = getWorld();
+            if (world == null) return;
+            
+            boolean health = getSetting("Health").getBooleanValue();
+            boolean distance = getSetting("Distance").getBooleanValue();
+            double scale = getSetting("Scale").getDoubleValue();
+            
+            // Nametags would render entity names through walls
+            // This is a simplified implementation - would need OpenGL hooks
+        } catch (Exception e) {
+            // Silent fail
+        }
     }
 }
 

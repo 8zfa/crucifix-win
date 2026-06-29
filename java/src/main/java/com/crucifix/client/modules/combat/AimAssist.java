@@ -20,21 +20,30 @@ public class AimAssist extends Module {
         addSetting(Setting.createToggle("Silent", true));
     }
     
-    @Override
-    public void onUpdate() {
-        // Implementation would smooth rotations toward target
-    }
-    
     @SubscribeEvent
     public void onUpdateEvent(UpdateEvent event) {
         if (!isEnabled()) return;
         
-        float speed = (float) getSetting("Speed").getDoubleValue();
-        float fov = (float) getSetting("FOV").getDoubleValue();
-        double distance = getSetting("Distance").getDoubleValue();
-        boolean silent = getSetting("Silent").getBooleanValue();
-        
-        // Aim assist logic would go here
+        try {
+            Object player = getPlayer();
+            if (player == null) return;
+            
+            float speed = (float) getSetting("Speed").getDoubleValue();
+            float fov = (float) getSetting("FOV").getDoubleValue();
+            double distance = getSetting("Distance").getDoubleValue();
+            boolean silent = getSetting("Silent").getBooleanValue();
+            
+            // Get player rotation
+            Float rotationYaw = (Float) getField(player, "rotationYaw");
+            Float rotationPitch = (Float) getField(player, "rotationPitch");
+            
+            if (rotationYaw != null && rotationPitch != null) {
+                // Aim assist would modify rotations toward target
+                // This is a simplified implementation
+            }
+        } catch (Exception e) {
+            // Silent fail
+        }
     }
 }
 

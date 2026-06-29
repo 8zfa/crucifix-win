@@ -19,20 +19,23 @@ public class Glow extends Module {
         addSetting(Setting.createSlider("Intensity", 1.0, 0.1, 2.0, 0.1));
     }
     
-    @Override
-    public void onRender(float partialTicks) {
-        // Implementation would render glow
-    }
-    
     @SubscribeEvent
     public void onRenderEvent(RenderEvent event) {
         if (!isEnabled()) return;
         
-        boolean players = getSetting("Players").getBooleanValue();
-        boolean mobs = getSetting("Mobs").getBooleanValue();
-        double intensity = getSetting("Intensity").getDoubleValue();
-        
-        // Glow rendering logic would go here
+        try {
+            Object world = getWorld();
+            if (world == null) return;
+            
+            boolean players = getSetting("Players").getBooleanValue();
+            boolean mobs = getSetting("Mobs").getBooleanValue();
+            double intensity = getSetting("Intensity").getDoubleValue();
+            
+            // Glow would add outline effect to entities
+            // This is a simplified implementation - would need OpenGL hooks
+        } catch (Exception e) {
+            // Silent fail
+        }
     }
 }
 

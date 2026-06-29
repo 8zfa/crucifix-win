@@ -18,19 +18,22 @@ public class AutoGG extends Module {
         addSetting(Setting.createSlider("Delay", 1.0, 0.0, 5.0, 0.5));
     }
     
-    @Override
-    public void onUpdate() {
-        // Implementation would send GG message
-    }
-    
     @SubscribeEvent
     public void onUpdateEvent(UpdateEvent event) {
         if (!isEnabled()) return;
         
-        String message = getSetting("GG").getStringValue();
-        double delay = getSetting("Delay").getDoubleValue();
-        
-        // Auto GG logic would go here
+        try {
+            Object mc = getMinecraft();
+            if (mc == null) return;
+            
+            String message = getSetting("Message").getStringValue();
+            double delay = getSetting("Delay").getDoubleValue();
+            
+            // Auto GG would send message on game end
+            // This is a simplified implementation
+        } catch (Exception e) {
+            // Silent fail
+        }
     }
 }
 

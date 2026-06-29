@@ -17,18 +17,39 @@ public class Reach extends Module {
         addSetting(Setting.createSlider("Distance", 3.5, 3.0, 6.0, 0.1));
     }
     
-    @Override
-    public void onUpdate() {
-        // Implementation would modify reach checks
-    }
-    
     @SubscribeEvent
     public void onUpdateEvent(UpdateEvent event) {
         if (!isEnabled()) return;
         
-        double distance = getSetting("Distance").getDoubleValue();
-        
-        // Reach modification logic would go here
+        try {
+            Object player = getPlayer();
+            if (player == null) return;
+            
+            double distance = getSetting("Distance").getDoubleValue();
+            
+            // Set reach distance via player capabilities
+            Object capabilities = getField(player, "capabilities");
+            if (capabilities != null) {
+                setField(capabilities, "playerReachDistance", (float) distance);
+            }
+        } catch (Exception e) {
+            // Silent fail
+        }
+    }
+    
+    @Override
+    public void onDisable() {
+        try {
+            Object player = getPlayer();
+            if (player != null) {
+                Object capabilities = getField(player, "capabilities");
+                if (capabilities != null) {
+                    setField(capabilities, "playerReachDistance", 3.0f); // Reset to default
+                }
+            }
+        } catch (Exception e) {
+            // Silent fail
+        }
     }
 }
 

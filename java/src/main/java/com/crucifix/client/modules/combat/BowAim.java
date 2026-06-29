@@ -18,19 +18,26 @@ public class BowAim extends Module {
         addSetting(Setting.createSlider("FOV", 60.0, 30.0, 180.0, 5.0));
     }
     
-    @Override
-    public void onUpdate() {
-        // Implementation would aim bow at targets
-    }
-    
     @SubscribeEvent
     public void onUpdateEvent(UpdateEvent event) {
         if (!isEnabled()) return;
         
-        boolean predict = getSetting("Predict").getBooleanValue();
-        float fov = (float) getSetting("FOV").getDoubleValue();
-        
-        // Bow aim logic would go here
+        try {
+            Object player = getPlayer();
+            if (player == null) return;
+            
+            boolean predict = getSetting("Predict").getBooleanValue();
+            float fov = (float) getSetting("FOV").getDoubleValue();
+            
+            // Check if player is holding a bow
+            Object heldItem = getField(player, "heldItem");
+            if (heldItem == null) return;
+            
+            // Bow aim would modify rotation toward target
+            // This is a simplified implementation
+        } catch (Exception e) {
+            // Silent fail
+        }
     }
 }
 

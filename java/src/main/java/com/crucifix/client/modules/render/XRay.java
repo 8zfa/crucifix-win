@@ -17,23 +17,41 @@ public class XRay extends Module {
         addSetting(Setting.createSlider("Opacity", 0.5, 0.0, 1.0, 0.05));
     }
     
-    @Override
-    public void onEnable() {
-        // Implementation would enable xray
-    }
-    
-    @Override
-    public void onDisable() {
-        // Implementation would disable xray
-    }
-    
     @SubscribeEvent
     public void onUpdateEvent(UpdateEvent event) {
         if (!isEnabled()) return;
         
-        double opacity = getSetting("Opacity").getDoubleValue();
-        
-        // XRay logic would go here
+        try {
+            Object mc = getMinecraft();
+            if (mc == null) return;
+            
+            double opacity = getSetting("Opacity").getDoubleValue();
+            
+            Object gameSettings = getField(mc, "gameSettings");
+            if (gameSettings != null) {
+                setField(gameSettings, "ambientOcclusion", false);
+            }
+            
+            // XRay would modify block rendering
+            // This is a simplified implementation
+        } catch (Exception e) {
+            // Silent fail
+        }
+    }
+    
+    @Override
+    public void onDisable() {
+        try {
+            Object mc = getMinecraft();
+            if (mc != null) {
+                Object gameSettings = getField(mc, "gameSettings");
+                if (gameSettings != null) {
+                    setField(gameSettings, "ambientOcclusion", true);
+                }
+            }
+        } catch (Exception e) {
+            // Silent fail
+        }
     }
 }
 

@@ -17,18 +17,24 @@ public class AutoSoup extends Module {
         addSetting(Setting.createSlider("Health", 15.0, 1.0, 20.0, 1.0));
     }
     
-    @Override
-    public void onUpdate() {
-        // Implementation would auto-eat soup
-    }
-    
     @SubscribeEvent
     public void onUpdateEvent(UpdateEvent event) {
         if (!isEnabled()) return;
         
-        double health = getSetting("Health").getDoubleValue();
-        
-        // Auto soup logic would go here
+        try {
+            Object player = getPlayer();
+            if (player == null) return;
+            
+            double health = getSetting("Health").getDoubleValue();
+            
+            Float playerHealth = (Float) getField(player, "health");
+            if (playerHealth != null && playerHealth < (float) health) {
+                // Auto eat soup would trigger here
+                callMethod(player, "setItemInUse", new Class<?>[]{Object.class, int.class}, null, 0);
+            }
+        } catch (Exception e) {
+            // Silent fail
+        }
     }
 }
 

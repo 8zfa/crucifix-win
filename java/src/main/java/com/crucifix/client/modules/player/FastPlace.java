@@ -17,18 +17,23 @@ public class FastPlace extends Module {
         addSetting(Setting.createSlider("Speed", 0.0, 0.0, 4.0, 1.0));
     }
     
-    @Override
-    public void onUpdate() {
-        // Implementation would speed up block placement
-    }
-    
     @SubscribeEvent
     public void onUpdateEvent(UpdateEvent event) {
         if (!isEnabled()) return;
         
-        double speed = getSetting("Speed").getDoubleValue();
-        
-        // Fast place logic would go here
+        try {
+            Object mc = getMinecraft();
+            if (mc == null) return;
+            
+            double speed = getSetting("Speed").getDoubleValue();
+            
+            Object rightClickDelayTimer = getField(mc, "rightClickDelayTimer");
+            if (rightClickDelayTimer != null) {
+                setField(rightClickDelayTimer, "field_73719_d", 0); // Reset delay
+            }
+        } catch (Exception e) {
+            // Silent fail
+        }
     }
 }
 

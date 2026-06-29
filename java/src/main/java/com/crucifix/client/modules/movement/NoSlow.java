@@ -18,19 +18,35 @@ public class NoSlow extends Module {
         addSetting(Setting.createToggle("SoulSand", true));
     }
     
-    @Override
-    public void onUpdate() {
-        // Implementation would prevent slowdown
-    }
-    
     @SubscribeEvent
     public void onUpdateEvent(UpdateEvent event) {
         if (!isEnabled()) return;
         
-        boolean items = getSetting("Items").getBooleanValue();
-        boolean soulSand = getSetting("SoulSand").getBooleanValue();
-        
-        // No slow logic would go here
+        try {
+            Object player = getPlayer();
+            if (player == null) return;
+            
+            boolean items = getSetting("Items").getBooleanValue();
+            boolean soulSand = getSetting("SoulSand").getBooleanValue();
+            
+            if (items) {
+                // Prevent item slowdown
+                setField(player, "usingItem", false);
+            }
+            
+            if (soulSand) {
+                // Prevent soulsand slowdown
+                Boolean onGround = (Boolean) getField(player, "onGround");
+                if (onGround != null && onGround) {
+                    Float speed = (Float) getField(player, "speed");
+                    if (speed != null && speed < 0.1f) {
+                        setField(player, "speed", 0.1f);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            // Silent fail
+        }
     }
 }
 

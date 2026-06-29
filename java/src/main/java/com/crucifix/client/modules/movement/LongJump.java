@@ -17,18 +17,24 @@ public class LongJump extends Module {
         addSetting(Setting.createSlider("Boost", 2.0, 1.0, 5.0, 0.1));
     }
     
-    @Override
-    public void onUpdate() {
-        // Implementation would boost jump distance
-    }
-    
     @SubscribeEvent
     public void onUpdateEvent(UpdateEvent event) {
         if (!isEnabled()) return;
         
-        double boost = getSetting("Boost").getDoubleValue();
-        
-        // Long jump logic would go here
+        try {
+            Object player = getPlayer();
+            if (player == null) return;
+            
+            double boost = getSetting("Boost").getDoubleValue();
+            
+            Boolean onGround = (Boolean) getField(player, "onGround");
+            if (onGround != null && onGround) {
+                // Boost jump
+                setField(player, "jump", 0.42f * (float) boost);
+            }
+        } catch (Exception e) {
+            // Silent fail
+        }
     }
 }
 

@@ -17,18 +17,26 @@ public class FastLadder extends Module {
         addSetting(Setting.createSlider("Speed", 2.0, 1.0, 5.0, 0.1));
     }
     
-    @Override
-    public void onUpdate() {
-        // Implementation would increase ladder climb speed
-    }
-    
     @SubscribeEvent
     public void onUpdateEvent(UpdateEvent event) {
         if (!isEnabled()) return;
         
-        double speed = getSetting("Speed").getDoubleValue();
-        
-        // Fast ladder logic would go here
+        try {
+            Object player = getPlayer();
+            if (player == null) return;
+            
+            double speed = getSetting("Speed").getDoubleValue();
+            
+            Boolean onGround = (Boolean) getField(player, "onGround");
+            Boolean isOnLadder = (Boolean) getField(player, "isOnLadder");
+            
+            if (isOnLadder != null && isOnLadder) {
+                // Increase ladder climb speed
+                setField(player, "motionY", (float) speed * 0.1f);
+            }
+        } catch (Exception e) {
+            // Silent fail
+        }
     }
 }
 

@@ -45,13 +45,31 @@ LRESULT CALLBACK KeyboardHook(int nCode, WPARAM wParam, LPARAM lParam)
             std::cout << "[Keyboard] Key pressed: " << keyCode << std::endl;
         }
         
-        // Toggle menu with INSERT only
-        if (pressed && keyCode == VK_INSERT)
+        // Toggle menu with RSHIFT only
+        if (pressed && keyCode == VK_RSHIFT)
         {
-            std::cout << "[CRUCIFIX] INSERT pressed, toggling ClickGUI" << std::endl;
+            std::cout << "[CRUCIFIX] RSHIFT pressed, toggling ClickGUI" << std::endl;
             g_menuOpen = !g_menuOpen;
             std::cout << "[CRUCIFIX] g_menuOpen now: " << (g_menuOpen ? "true" : "false") << std::endl;
-            ClickGUI::getInstance().toggle();
+            
+            // Call Java toggleClickGUI method
+            if (g_env)
+            {
+                jclass crucifixClass = g_env->FindClass("com/crucifix/client/Crucifix");
+                if (crucifixClass)
+                {
+                    jmethodID toggleMethod = g_env->GetStaticMethodID(crucifixClass, "toggleClickGUI", "()V");
+                    if (toggleMethod)
+                    {
+                        g_env->CallStaticVoidMethod(crucifixClass, toggleMethod);
+                        if (g_env->ExceptionCheck())
+                        {
+                            g_env->ExceptionDescribe();
+                            g_env->ExceptionClear();
+                        }
+                    }
+                }
+            }
         }
     }
     

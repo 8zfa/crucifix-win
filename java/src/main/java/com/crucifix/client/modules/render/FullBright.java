@@ -19,21 +19,51 @@ public class FullBright extends Module {
     
     @Override
     public void onEnable() {
-        // Implementation would set gamma
+        try {
+            Object mc = getMinecraft();
+            if (mc != null) {
+                Object gameSettings = getField(mc, "gameSettings");
+                if (gameSettings != null) {
+                    setField(gameSettings, "gammaSetting", 15.0f);
+                }
+            }
+        } catch (Exception e) {
+            // Silent fail
+        }
     }
     
     @Override
     public void onDisable() {
-        // Implementation would reset gamma
+        try {
+            Object mc = getMinecraft();
+            if (mc != null) {
+                Object gameSettings = getField(mc, "gameSettings");
+                if (gameSettings != null) {
+                    setField(gameSettings, "gammaSetting", 1.0f); // Reset to default
+                }
+            }
+        } catch (Exception e) {
+            // Silent fail
+        }
     }
     
     @SubscribeEvent
     public void onUpdateEvent(UpdateEvent event) {
         if (!isEnabled()) return;
         
-        double gamma = getSetting("Gamma").getDoubleValue();
-        
-        // Full bright logic would go here
+        try {
+            Object mc = getMinecraft();
+            if (mc == null) return;
+            
+            double gamma = getSetting("Gamma").getDoubleValue();
+            
+            Object gameSettings = getField(mc, "gameSettings");
+            if (gameSettings != null) {
+                setField(gameSettings, "gammaSetting", (float) gamma);
+            }
+        } catch (Exception e) {
+            // Silent fail
+        }
     }
 }
 

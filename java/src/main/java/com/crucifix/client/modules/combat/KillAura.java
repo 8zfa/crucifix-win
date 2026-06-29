@@ -23,23 +23,32 @@ public class KillAura extends Module {
         addSetting(Setting.createToggle("TargetAnimals", false));
     }
     
-    @Override
-    public void onUpdate() {
-        // Implementation would hook into Minecraft's entity system
-        // and automatically attack entities within range
-    }
-    
     @SubscribeEvent
     public void onUpdateEvent(UpdateEvent event) {
         if (!isEnabled()) return;
         
-        double range = getSetting("Range").getDoubleValue();
-        double cps = getSetting("CPS").getDoubleValue();
-        boolean multiAura = getSetting("MultiAura").getBooleanValue();
-        boolean wallCheck = getSetting("WallCheck").getBooleanValue();
-        
-        // Attack logic would go here
-        // This is a placeholder - actual implementation would use Minecraft's MCP mappings
+        try {
+            Object player = getPlayer();
+            if (player == null) return;
+            
+            Object world = getWorld();
+            if (world == null) return;
+            
+            double range = getSetting("Range").getDoubleValue();
+            double cps = getSetting("CPS").getDoubleValue();
+            boolean wallCheck = getSetting("WallCheck").getBooleanValue();
+            
+            // Get loaded entities from world
+            Object loadedEntityList = getField(world, "loadedEntityList");
+            if (loadedEntityList == null) return;
+            
+            // Find closest entity within range
+            // This is a simplified implementation
+            // Full implementation would iterate entities and attack them
+            
+        } catch (Exception e) {
+            // Silent fail
+        }
     }
 }
 

@@ -18,19 +18,26 @@ public class RodAura extends Module {
         addSetting(Setting.createSlider("Delay", 200.0, 0.0, 1000.0, 50.0));
     }
     
-    @Override
-    public void onUpdate() {
-        // Implementation would auto-throw fishing rod
-    }
-    
     @SubscribeEvent
     public void onUpdateEvent(UpdateEvent event) {
         if (!isEnabled()) return;
         
-        double range = getSetting("Range").getDoubleValue();
-        double delay = getSetting("Delay").getDoubleValue();
-        
-        // Rod aura logic would go here
+        try {
+            Object player = getPlayer();
+            if (player == null) return;
+            
+            double range = getSetting("Range").getDoubleValue();
+            double delay = getSetting("Delay").getDoubleValue();
+            
+            // Check if holding fishing rod
+            Object heldItem = getField(player, "heldItem");
+            if (heldItem == null) return;
+            
+            // Rod aura would auto-throw fishing rod at targets
+            // This is a simplified implementation
+        } catch (Exception e) {
+            // Silent fail
+        }
     }
 }
 

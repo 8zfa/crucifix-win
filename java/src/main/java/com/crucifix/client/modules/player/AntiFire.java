@@ -14,16 +14,22 @@ public class AntiFire extends Module {
         super("AntiFire", "Prevents fire damage", Category.PLAYER, 0);
     }
     
-    @Override
-    public void onUpdate() {
-        // Implementation would prevent fire damage
-    }
-    
     @SubscribeEvent
     public void onUpdateEvent(UpdateEvent event) {
         if (!isEnabled()) return;
         
-        // Anti fire logic would go here
+        try {
+            Object player = getPlayer();
+            if (player == null) return;
+            
+            // Prevent fire damage by extinguishing
+            Boolean isBurning = (Boolean) getField(player, "isBurning");
+            if (isBurning != null && isBurning) {
+                setField(player, "fire", 0);
+            }
+        } catch (Exception e) {
+            // Silent fail
+        }
     }
 }
 

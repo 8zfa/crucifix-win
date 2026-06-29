@@ -14,16 +14,36 @@ public class CameraClip extends Module {
         super("CameraClip", "Allows camera to clip through blocks", Category.RENDER, 0);
     }
     
-    @Override
-    public void onUpdate() {
-        // Implementation would enable camera clipping
-    }
-    
     @SubscribeEvent
     public void onUpdateEvent(UpdateEvent event) {
         if (!isEnabled()) return;
         
-        // Camera clip logic would go here
+        try {
+            Object mc = getMinecraft();
+            if (mc == null) return;
+            
+            Object entityRenderer = getField(mc, "entityRenderer");
+            if (entityRenderer != null) {
+                setField(entityRenderer, "thirdPersonDistance", 4.0f);
+            }
+        } catch (Exception e) {
+            // Silent fail
+        }
+    }
+    
+    @Override
+    public void onDisable() {
+        try {
+            Object mc = getMinecraft();
+            if (mc != null) {
+                Object entityRenderer = getField(mc, "entityRenderer");
+                if (entityRenderer != null) {
+                    setField(entityRenderer, "thirdPersonDistance", 4.0f);
+                }
+            }
+        } catch (Exception e) {
+            // Silent fail
+        }
     }
 }
 

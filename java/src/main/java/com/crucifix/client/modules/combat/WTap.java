@@ -24,18 +24,30 @@ public class WTap extends Module {
         hasHit = false;
     }
     
-    @Override
-    public void onUpdate() {
-        // Implementation would reset sprint after hitting
-    }
-    
     @SubscribeEvent
     public void onUpdateEvent(UpdateEvent event) {
         if (!isEnabled()) return;
         
-        double delay = getSetting("Delay").getDoubleValue();
-        
-        // W-tap logic would go here
+        try {
+            Object player = getPlayer();
+            if (player == null) return;
+            
+            double delay = getSetting("Delay").getDoubleValue();
+            
+            // W-tap resets sprint after hitting to deal more knockback
+            Boolean isSprinting = (Boolean) getField(player, "isSprinting");
+            if (isSprinting != null && isSprinting) {
+                // Reset sprint briefly
+                setField(player, "isSprinting", false);
+                hasHit = true;
+            } else if (hasHit) {
+                // Re-enable sprint after delay
+                setField(player, "isSprinting", true);
+                hasHit = false;
+            }
+        } catch (Exception e) {
+            // Silent fail
+        }
     }
 }
 

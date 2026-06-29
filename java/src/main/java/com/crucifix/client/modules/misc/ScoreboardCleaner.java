@@ -14,16 +14,19 @@ public class ScoreboardCleaner extends Module {
         super("ScoreboardCleaner", "Cleans up scoreboard", Category.MISC, 0);
     }
     
-    @Override
-    public void onRender(float partialTicks) {
-        // Implementation would clean scoreboard
-    }
-    
     @SubscribeEvent
     public void onRenderEvent(RenderEvent event) {
         if (!isEnabled()) return;
         
-        // Scoreboard cleaner logic would go here
+        try {
+            Object world = getWorld();
+            if (world == null) return;
+            
+            // Scoreboard cleaner would hide scoreboard elements
+            // This is a simplified implementation
+        } catch (Exception e) {
+            // Silent fail
+        }
     }
 }
 

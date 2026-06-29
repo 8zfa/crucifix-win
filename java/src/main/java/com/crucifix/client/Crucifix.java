@@ -43,43 +43,7 @@ public class Crucifix {
     private CommandManager commandManager;
     
     private boolean initialized = false;
-    
-    /**
-     * Get a class using the correct classloader (Lunar's classloader)
-     */
-    private static Class<?> getClassWithCorrectLoader(String className) {
-        try {
-            // Try Thread Context ClassLoader first
-            ClassLoader contextCL = Thread.currentThread().getContextClassLoader();
-            if (contextCL != null) {
-                try {
-                    return Class.forName(className, false, contextCL);
-                } catch (ClassNotFoundException e) {
-                    // Fall through
-                }
-            }
-            
-            // Try the system classloader (your JAR's loader)
-            try {
-                return Class.forName(className);
-            } catch (ClassNotFoundException e) {
-                // Fall through
-            }
-            
-            // Try to find Lunar's classloader by walking the hierarchy
-            for (ClassLoader cl = ClassLoader.getSystemClassLoader(); cl != null; cl = cl.getParent()) {
-                try {
-                    return Class.forName(className, false, cl);
-                } catch (ClassNotFoundException e) {
-                    // Try next
-                }
-            }
-            
-            return null;
-        } catch (Exception e) {
-            return null;
-        }
-    }
+    private boolean lunarBridgeInitialized = false;
     
     /**
      * Called from native code when the DLL is injected
@@ -100,37 +64,35 @@ public class Crucifix {
             System.out.println("[CRUCIFIX] Waiting 5 seconds for Lunar to fully load...");
             Thread.sleep(5000);
             
+            // Initialize LunarBridge first
+            debugLog.write("[CRUCIFIX] Initializing LunarBridge...\n");
+            debugLog.flush();
+            System.out.println("[CRUCIFIX] Initializing LunarBridge...");
+            
+            boolean bridgeSuccess = LunarBridge.initialize();
+            instance.lunarBridgeInitialized = bridgeSuccess;
+            
+            if (bridgeSuccess) {
+                debugLog.write("[CRUCIFIX] LunarBridge initialized successfully!\n");
+                debugLog.flush();
+                System.out.println("[CRUCIFIX] LunarBridge initialized successfully!");
+            } else {
+                debugLog.write("[CRUCIFIX] LunarBridge initialization failed, continuing without Minecraft access\n");
+                debugLog.flush();
+                System.out.println("[CRUCIFIX] LunarBridge initialization failed, continuing without Minecraft access");
+            }
+            
             // Write debug info to file
             try {
                 java.io.FileWriter fw = new java.io.FileWriter(System.getProperty("user.home") + "\\AppData\\Local\\Temp\\crucifix_init.log");
                 fw.write("init() called at: " + new java.util.Date() + "\n");
                 fw.write("Thread: " + Thread.currentThread().getName() + "\n");
+                fw.write("LunarBridge: " + (bridgeSuccess ? "SUCCESS" : "FAILED") + "\n");
                 fw.close();
             } catch (Exception e) {
                 debugLog.write("[CRUCIFIX] Failed to write init log: " + e.getMessage() + "\n");
                 debugLog.flush();
             }
-            
-            debugLog.write("[CRUCIFIX] Testing ClickGUI class...\n");
-            debugLog.flush();
-            
-            // Test if ClickGUI class is available
-            try {
-                Class.forName("com.crucifix.client.gui.ClickGUI");
-                debugLog.write("[CRUCIFIX] ClickGUI class found!\n");
-                System.out.println("[CRUCIFIX] ClickGUI class found!");
-            } catch (ClassNotFoundException e) {
-                debugLog.write("[CRUCIFIX] ClickGUI class NOT found: " + e.getMessage() + "\n");
-                System.out.println("[CRUCIFIX] ClickGUI class NOT found!");
-            }
-            debugLog.flush();
-            
-            // Skip Minecraft class check - Lunar obfuscates classes
-            debugLog.write("[CRUCIFIX] Skipping Minecraft class check (Lunar obfuscates classes)\n");
-            debugLog.write("[CRUCIFIX] Initializing without direct Minecraft access...\n");
-            debugLog.flush();
-            System.out.println("[CRUCIFIX] Skipping Minecraft class check (Lunar obfuscates classes)");
-            System.out.println("[CRUCIFIX] Initializing without direct Minecraft access...");
             
             debugLog.write("[CRUCIFIX] Calling initialize()...\n");
             debugLog.flush();
@@ -222,10 +184,13 @@ public class Crucifix {
             
             System.out.println("[CRUCIFIX] Config loaded");
             
-            // Initialize modules
-            moduleManager.initializeModules();
-            
-            System.out.println("[CRUCIFIX] Modules initialized");
+            // Initialize modules only if LunarBridge succeeded
+            if (lunarBridgeInitialized) {
+                moduleManager.initializeModules();
+                System.out.println("[CRUCIFIX] Modules initialized");
+            } else {
+                System.out.println("[CRUCIFIX] Skipping module initialization (LunarBridge failed)");
+            }
             
             initialized = true;
             System.out.println("[CRUCIFIX] Initialization complete");
@@ -272,6 +237,16 @@ public class Crucifix {
     }
     
     /**
+     * Called from native C++ code to toggle ClickGUI
+     */
+    public static void toggleClickGUI() {
+        if (instance != null && instance.clickGUI != null) {
+            instance.clickGUI.toggle();
+            System.out.println("[CRUCIFIX] ClickGUI toggled via native call");
+        }
+    }
+    
+    /**
      * Called from native C++ code to fire packet events
      */
     public static void firePacketEvent(long packetPtr, boolean cancelled) {
@@ -283,17 +258,16 @@ public class Crucifix {
     
     private void sendChatMessage(String message) {
         try {
-            // Use reflection to avoid compile-time dependency on Minecraft
-            Class<?> minecraftClass = Class.forName("net.minecraft.client.Minecraft");
-            Object minecraft = minecraftClass.getMethod("getMinecraft").invoke(null);
-            if (minecraft == null) return;
+            // Use LunarBridge to avoid compile-time dependency on Minecraft
+            Object mc = LunarBridge.getMinecraft();
+            if (mc == null) return;
             
             // Get the player
-            Object player = minecraftClass.getField("thePlayer").get(minecraft);
+            Object player = LunarBridge.getField(mc, "thePlayer");
             if (player == null) return;
             
             // Send chat message
-            player.getClass().getMethod("sendChatMessage", String.class).invoke(player, message);
+            LunarBridge.callMethod(player, "sendChatMessage", new Class<?>[]{String.class}, message);
             
             System.out.println("[CRUCIFIX] Sent chat message: " + message);
         } catch (Exception e) {
@@ -341,8 +315,8 @@ public class Crucifix {
     public void onKey(KeyEvent event) {
         if (!initialized) return;
         
-        // Check for ClickGUI toggle
-        if (event.getKeyCode() == clickGUI.getToggleKey()) {
+        // Check for ClickGUI toggle (RSHIFT)
+        if (event.getKeyCode() == 0xA1) { // VK_RSHIFT
             clickGUI.toggle();
             event.setCancelled(true);
             return;
@@ -388,6 +362,10 @@ public class Crucifix {
     
     public boolean isInitialized() {
         return initialized;
+    }
+    
+    public boolean isLunarBridgeInitialized() {
+        return lunarBridgeInitialized;
     }
 }
 

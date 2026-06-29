@@ -14,16 +14,19 @@ public class NoHurtCam extends Module {
         super("NoHurtCam", "Disables hurt camera effect", Category.RENDER, 0);
     }
     
-    @Override
-    public void onUpdate() {
-        // Implementation would disable hurt camera
-    }
-    
     @SubscribeEvent
     public void onUpdateEvent(UpdateEvent event) {
         if (!isEnabled()) return;
         
-        // No hurt cam logic would go here
+        try {
+            Object player = getPlayer();
+            if (player == null) return;
+            
+            // Disable hurt camera effect
+            setField(player, "hurtTime", 0);
+        } catch (Exception e) {
+            // Silent fail
+        }
     }
 }
 

@@ -17,18 +17,24 @@ public class NoFall extends Module {
         addSetting(Setting.createDropdown("Mode", new String[]{"Packet", "Spoof", "AAC"}));
     }
     
-    @Override
-    public void onUpdate() {
-        // Implementation would prevent fall damage
-    }
-    
     @SubscribeEvent
     public void onUpdateEvent(UpdateEvent event) {
         if (!isEnabled()) return;
         
-        String mode = getSetting("Mode").getStringValue();
-        
-        // No fall logic would go here
+        try {
+            Object player = getPlayer();
+            if (player == null) return;
+            
+            String mode = getSetting("Mode").getStringValue();
+            
+            Boolean onGround = (Boolean) getField(player, "onGround");
+            if (onGround != null && !onGround) {
+                // Prevent fall damage by spoofing onGround
+                setField(player, "onGround", true);
+            }
+        } catch (Exception e) {
+            // Silent fail
+        }
     }
 }
 

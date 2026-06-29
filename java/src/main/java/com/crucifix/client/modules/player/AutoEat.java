@@ -18,19 +18,28 @@ public class AutoEat extends Module {
         addSetting(Setting.createDropdown("Priority", new String[]{"Saturation", "Hunger"}));
     }
     
-    @Override
-    public void onUpdate() {
-        // Implementation would auto-eat food
-    }
-    
     @SubscribeEvent
     public void onUpdateEvent(UpdateEvent event) {
         if (!isEnabled()) return;
         
-        double hunger = getSetting("Hunger").getDoubleValue();
-        String priority = getSetting("Priority").getStringValue();
-        
-        // Auto eat logic would go here
+        try {
+            Object player = getPlayer();
+            if (player == null) return;
+            
+            double hunger = getSetting("Hunger").getDoubleValue();
+            String priority = getSetting("Priority").getStringValue();
+            
+            Object foodStats = getField(player, "foodStats");
+            if (foodStats != null) {
+                Integer foodLevel = (Integer) getField(foodStats, "foodLevel");
+                if (foodLevel != null && foodLevel < (int) hunger) {
+                    // Auto eat would trigger here
+                    callMethod(player, "setItemInUse", new Class<?>[]{Object.class, int.class}, null, 0);
+                }
+            }
+        } catch (Exception e) {
+            // Silent fail
+        }
     }
 }
 

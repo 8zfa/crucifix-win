@@ -19,19 +19,26 @@ public class Chams extends Module {
         addSetting(Setting.createToggle("Color", true));
     }
     
-    @Override
-    public void onRender(float partialTicks) {
-        // Implementation would render chams
-    }
-    
     @SubscribeEvent
     public void onRenderEvent(RenderEvent event) {
         if (!isEnabled()) return;
         
-        boolean players = getSetting("Players").getBooleanValue();
-        boolean mobs = getSetting("Mobs").getBooleanValue();
-        
-        // Chams rendering logic would go here
+        try {
+            Object mc = getMinecraft();
+            if (mc == null) return;
+            
+            boolean players = getSetting("Players").getBooleanValue();
+            boolean mobs = getSetting("Mobs").getBooleanValue();
+            
+            // Chams would modify entity rendering to show through walls
+            // This is a simplified implementation
+            Object gameSettings = getField(mc, "gameSettings");
+            if (gameSettings != null) {
+                setField(gameSettings, "ambientOcclusion", false);
+            }
+        } catch (Exception e) {
+            // Silent fail
+        }
     }
 }
 

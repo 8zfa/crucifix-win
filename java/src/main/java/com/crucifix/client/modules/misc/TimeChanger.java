@@ -17,23 +17,21 @@ public class TimeChanger extends Module {
         addSetting(Setting.createSlider("Time", 12000.0, 0.0, 24000.0, 1000.0));
     }
     
-    @Override
-    public void onEnable() {
-        // Implementation would set time
-    }
-    
-    @Override
-    public void onDisable() {
-        // Implementation would reset time
-    }
-    
     @SubscribeEvent
     public void onUpdateEvent(UpdateEvent event) {
         if (!isEnabled()) return;
         
-        double time = getSetting("Time").getDoubleValue();
-        
-        // Time changer logic would go here
+        try {
+            Object world = getWorld();
+            if (world == null) return;
+            
+            double time = getSetting("Time").getDoubleValue();
+            
+            // Set world time
+            setField(world, "worldTime", (long) time);
+        } catch (Exception e) {
+            // Silent fail
+        }
     }
 }
 

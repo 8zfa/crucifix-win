@@ -6,12 +6,11 @@ import com.crucifix.client.gui.themes.Theme;
 import com.crucifix.client.gui.themes.CrucifixDark;
 import com.crucifix.client.modules.Category;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Main ClickGUI interface
+ * Main ClickGUI interface - renders via ImGui from C++ hook
  */
 public class ClickGUI {
     private boolean open;
@@ -25,7 +24,7 @@ public class ClickGUI {
     
     public ClickGUI() {
         this.open = false;
-        this.toggleKey = 45; // INSERT
+        this.toggleKey = 0xA1; // VK_RSHIFT
         this.panels = new ArrayList<>();
         this.currentTheme = new CrucifixDark();
         this.mouseX = 0;
@@ -44,6 +43,9 @@ public class ClickGUI {
         }
     }
     
+    /**
+     * Called from C++ wglSwapBuffers hook to render the GUI
+     */
     public void render(float partialTicks) {
         if (!open) return;
         
@@ -53,6 +55,17 @@ public class ClickGUI {
         }
     }
     
+    /**
+     * Toggle the ClickGUI visibility
+     */
+    public void toggle() {
+        open = !open;
+        System.out.println("[ClickGUI] Toggled: " + (open ? "OPEN" : "CLOSED"));
+    }
+    
+    /**
+     * Handle mouse click from C++ input
+     */
     public void handleMouseClick(int button, int x, int y) {
         if (!open) return;
         
@@ -76,6 +89,9 @@ public class ClickGUI {
         }
     }
     
+    /**
+     * Handle mouse release from C++ input
+     */
     public void handleMouseRelease(int button) {
         if (button == 0) {
             dragging = false;
@@ -83,6 +99,9 @@ public class ClickGUI {
         }
     }
     
+    /**
+     * Handle mouse move from C++ input
+     */
     public void handleMouseMove(int x, int y) {
         this.mouseX = x;
         this.mouseY = y;
@@ -90,10 +109,6 @@ public class ClickGUI {
         if (dragging && draggedPanel != null) {
             draggedPanel.setPosition(x - dragOffsetX, y - dragOffsetY);
         }
-    }
-    
-    public void toggle() {
-        open = !open;
     }
     
     public boolean isOpen() {

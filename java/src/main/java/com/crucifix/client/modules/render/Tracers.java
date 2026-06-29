@@ -19,19 +19,22 @@ public class Tracers extends Module {
         addSetting(Setting.createToggle("Color", true));
     }
     
-    @Override
-    public void onRender(float partialTicks) {
-        // Implementation would render tracers
-    }
-    
     @SubscribeEvent
     public void onRenderEvent(RenderEvent event) {
         if (!isEnabled()) return;
         
-        boolean players = getSetting("Players").getBooleanValue();
-        boolean mobs = getSetting("Mobs").getBooleanValue();
-        
-        // Tracers rendering logic would go here
+        try {
+            Object world = getWorld();
+            if (world == null) return;
+            
+            boolean players = getSetting("Players").getBooleanValue();
+            boolean mobs = getSetting("Mobs").getBooleanValue();
+            
+            // Tracers would draw lines from player to entities
+            // This is a simplified implementation - would need OpenGL hooks
+        } catch (Exception e) {
+            // Silent fail
+        }
     }
 }
 

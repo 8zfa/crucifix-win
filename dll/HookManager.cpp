@@ -1,6 +1,7 @@
 #include "HookManager.h"
 #include <iostream>
 #include <detours.h>
+#include "JNIHelper.h"
 
 // Hook handles
 static PVOID s_tickHook = nullptr;
@@ -12,6 +13,9 @@ static void (*s_originalTick)() = nullptr;
 static void (*s_originalPacketSend)() = nullptr;
 static void (*s_originalRenderWorld)() = nullptr;
 
+// External JNI environment (set from dllmain.cpp)
+extern JNIEnv* g_env;
+
 // Hook functions
 static void TickHook()
 {
@@ -19,7 +23,24 @@ static void TickHook()
     if (s_originalTick)
         s_originalTick();
     
-    // Call Java callback if needed
+    // Call Java update callback
+    if (g_env)
+    {
+        jclass crucifixClass = g_env->FindClass("com/crucifix/client/Crucifix");
+        if (crucifixClass)
+        {
+            jmethodID updateMethod = g_env->GetStaticMethodID(crucifixClass, "fireUpdateEvent", "()V");
+            if (updateMethod)
+            {
+                g_env->CallStaticVoidMethod(crucifixClass, updateMethod);
+                if (g_env->ExceptionCheck())
+                {
+                    g_env->ExceptionDescribe();
+                    g_env->ExceptionClear();
+                }
+            }
+        }
+    }
 }
 
 static void PacketSendHook()
@@ -37,7 +58,24 @@ static void RenderWorldHook()
     if (s_originalRenderWorld)
         s_originalRenderWorld();
     
-    // Call Java callback if needed
+    // Call Java render callback
+    if (g_env)
+    {
+        jclass crucifixClass = g_env->FindClass("com/crucifix/client/Crucifix");
+        if (crucifixClass)
+        {
+            jmethodID renderMethod = g_env->GetStaticMethodID(crucifixClass, "fireRenderEvent", "(F)V");
+            if (renderMethod)
+            {
+                g_env->CallStaticVoidMethod(crucifixClass, renderMethod, 1.0f); // partialTicks
+                if (g_env->ExceptionCheck())
+                {
+                    g_env->ExceptionDescribe();
+                    g_env->ExceptionClear();
+                }
+            }
+        }
+    }
 }
 
 void InitializeHooks()

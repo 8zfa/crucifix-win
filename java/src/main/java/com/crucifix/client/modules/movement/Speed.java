@@ -6,17 +6,10 @@ import com.crucifix.client.modules.Category;
 import com.crucifix.client.modules.Module;
 import com.crucifix.client.modules.Setting;
 
-import java.lang.reflect.Field;
-
 /**
  * Increases movement speed
  */
 public class Speed extends Module {
-    
-    private Field moveForwardField;
-    private Field moveStrafeField;
-    private Field speedField;
-    private Field jumpMovementFactorField;
     
     private int bhopTimer = 0;
     
@@ -30,21 +23,6 @@ public class Speed extends Module {
     @Override
     public void onEnable() {
         bhopTimer = 0;
-        try {
-            // Cache fields for performance
-            Class<?> entityPlayerClass = Class.forName("net.minecraft.entity.player.EntityPlayer");
-            moveForwardField = entityPlayerClass.getDeclaredField("moveForward");
-            moveStrafeField = entityPlayerClass.getDeclaredField("moveStrafe");
-            speedField = entityPlayerClass.getDeclaredField("speed");
-            jumpMovementFactorField = entityPlayerClass.getDeclaredField("jumpMovementFactor");
-            
-            moveForwardField.setAccessible(true);
-            moveStrafeField.setAccessible(true);
-            speedField.setAccessible(true);
-            jumpMovementFactorField.setAccessible(true);
-        } catch (Exception e) {
-            System.out.println("[Speed] Failed to initialize reflection: " + e.getMessage());
-        }
     }
     
     @SubscribeEvent
@@ -52,13 +30,8 @@ public class Speed extends Module {
         if (!isEnabled()) return;
         
         try {
-            // Get Minecraft instance
-            Class<?> minecraftClass = Class.forName("net.minecraft.client.Minecraft");
-            Object minecraft = minecraftClass.getMethod("getMinecraft").invoke(null);
-            if (minecraft == null) return;
-            
-            // Get the player
-            Object player = minecraftClass.getField("thePlayer").get(minecraft);
+            // Get player via LunarBridge
+            Object player = getPlayer();
             if (player == null) return;
             
             // Get settings
@@ -66,8 +39,10 @@ public class Speed extends Module {
             String mode = getSetting("Mode").getStringValue();
             
             // Get movement values
-            float moveForward = moveForwardField.getFloat(player);
-            float moveStrafe = moveStrafeField.getFloat(player);
+            Float moveForward = (Float) getField(player, "moveForward");
+            Float moveStrafe = (Float) getField(player, "moveStrafe");
+            
+            if (moveForward == null || moveStrafe == null) return;
             
             // Check if player is moving
             boolean isMoving = Math.abs(moveForward) > 0.01f || Math.abs(moveStrafe) > 0.01f;
@@ -77,7 +52,8 @@ public class Speed extends Module {
             }
             
             // Get current speed
-            float currentSpeed = speedField.getFloat(player);
+            Float currentSpeed = (Float) getField(player, "speed");
+            if (currentSpeed == null) return;
             
             switch (mode) {
                 case "BHop":
@@ -102,19 +78,16 @@ public class Speed extends Module {
     private void handleBHopMode(Object player, double speedMultiplier, float currentSpeed) {
         try {
             // BHop mode - jump when on ground to maintain speed
-            Field onGroundField = player.getClass().getDeclaredField("onGround");
-            onGroundField.setAccessible(true);
-            boolean onGround = onGroundField.getBoolean(player);
+            Boolean onGround = (Boolean) getField(player, "onGround");
+            if (onGround == null) return;
             
             if (onGround) {
                 // Jump
-                Field jumpField = player.getClass().getDeclaredField("jump");
-                jumpField.setAccessible(true);
-                jumpField.setFloat(player, 0.42f);
+                setField(player, "jump", 0.42f);
                 
                 // Apply speed boost
                 float newSpeed = currentSpeed * (float) speedMultiplier;
-                speedField.setFloat(player, newSpeed);
+                setField(player, "speed", newSpeed);
                 
                 bhopTimer = 0;
             } else {
@@ -122,7 +95,7 @@ public class Speed extends Module {
                 // Maintain speed in air
                 if (bhopTimer > 2) {
                     float newSpeed = currentSpeed * 0.99f; // Slight slowdown in air
-                    speedField.setFloat(player, newSpeed);
+                    setField(player, "speed", newSpeed);
                 }
             }
         } catch (Exception e) {
@@ -133,14 +106,11 @@ public class Speed extends Module {
     private void handleOnGroundMode(Object player, double speedMultiplier, float currentSpeed) {
         try {
             // OnGround mode - just increase speed while on ground
-            Field onGroundField = player.getClass().getDeclaredField("onGround");
-            onGroundField.setAccessible(true);
-            boolean onGround = onGroundField.getBoolean(player);
+            Boolean onGround = (Boolean) getField(player, "onGround");
+            if (onGround == null || !onGround) return;
             
-            if (onGround) {
-                float newSpeed = currentSpeed * (float) speedMultiplier;
-                speedField.setFloat(player, newSpeed);
-            }
+            float newSpeed = currentSpeed * (float) speedMultiplier;
+            setField(player, "speed", newSpeed);
         } catch (Exception e) {
             // Silent fail
         }
@@ -149,19 +119,16 @@ public class Speed extends Module {
     private void handleHopMode(Object player, double speedMultiplier, float currentSpeed) {
         try {
             // Hop mode - small hops with speed boost
-            Field onGroundField = player.getClass().getDeclaredField("onGround");
-            onGroundField.setAccessible(true);
-            boolean onGround = onGroundField.getBoolean(player);
+            Boolean onGround = (Boolean) getField(player, "onGround");
+            if (onGround == null) return;
             
             if (onGround) {
                 // Small hop
-                Field jumpField = player.getClass().getDeclaredField("jump");
-                jumpField.setAccessible(true);
-                jumpField.setFloat(player, 0.3f);
+                setField(player, "jump", 0.3f);
                 
                 // Apply speed boost
                 float newSpeed = currentSpeed * (float) speedMultiplier;
-                speedField.setFloat(player, newSpeed);
+                setField(player, "speed", newSpeed);
             }
         } catch (Exception e) {
             // Silent fail
@@ -171,16 +138,13 @@ public class Speed extends Module {
     private void handleTimerMode(Object player, double speedMultiplier) {
         try {
             // Timer mode - modify game tick speed
-            Class<?> minecraftClass = Class.forName("net.minecraft.client.Minecraft");
-            Object minecraft = minecraftClass.getMethod("getMinecraft").invoke(null);
+            Object mc = getMinecraft();
+            if (mc == null) return;
             
-            Field timerField = minecraftClass.getDeclaredField("timer");
-            timerField.setAccessible(true);
-            Object timer = timerField.get(minecraft);
+            Object timer = getField(mc, "timer");
+            if (timer == null) return;
             
-            Field timerSpeedField = timer.getClass().getDeclaredField("timerSpeed");
-            timerSpeedField.setAccessible(true);
-            timerSpeedField.setFloat(timer, (float) speedMultiplier);
+            setField(timer, "timerSpeed", (float) speedMultiplier);
         } catch (Exception e) {
             // Silent fail
         }
@@ -190,16 +154,13 @@ public class Speed extends Module {
     public void onDisable() {
         // Reset timer speed if using timer mode
         try {
-            Class<?> minecraftClass = Class.forName("net.minecraft.client.Minecraft");
-            Object minecraft = minecraftClass.getMethod("getMinecraft").invoke(null);
+            Object mc = getMinecraft();
+            if (mc == null) return;
             
-            Field timerField = minecraftClass.getDeclaredField("timer");
-            timerField.setAccessible(true);
-            Object timer = timerField.get(minecraft);
+            Object timer = getField(mc, "timer");
+            if (timer == null) return;
             
-            Field timerSpeedField = timer.getClass().getDeclaredField("timerSpeed");
-            timerSpeedField.setAccessible(true);
-            timerSpeedField.setFloat(timer, 1.0f);
+            setField(timer, "timerSpeed", 1.0f);
         } catch (Exception e) {
             // Silent fail
         }

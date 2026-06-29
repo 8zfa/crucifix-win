@@ -17,18 +17,27 @@ public class Strafe extends Module {
         addSetting(Setting.createSlider("Speed", 0.5, 0.1, 1.0, 0.05));
     }
     
-    @Override
-    public void onUpdate() {
-        // Implementation would improve air control
-    }
-    
     @SubscribeEvent
     public void onUpdateEvent(UpdateEvent event) {
         if (!isEnabled()) return;
         
-        double speed = getSetting("Speed").getDoubleValue();
-        
-        // Strafe logic would go here
+        try {
+            Object player = getPlayer();
+            if (player == null) return;
+            
+            double speed = getSetting("Speed").getDoubleValue();
+            
+            Boolean onGround = (Boolean) getField(player, "onGround");
+            if (onGround != null && !onGround) {
+                // Improve air strafing by modifying speed
+                Float currentSpeed = (Float) getField(player, "speed");
+                if (currentSpeed != null) {
+                    setField(player, "speed", currentSpeed * (float) speed);
+                }
+            }
+        } catch (Exception e) {
+            // Silent fail
+        }
     }
 }
 

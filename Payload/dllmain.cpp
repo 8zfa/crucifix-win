@@ -128,8 +128,42 @@ DWORD WINAPI InjectionThread(LPVOID lpParam)
     if (InitializeJNI())
     {
         LogToFile("[Payload] === SUCCESS: JNI attachment confirmed ===");
-        LogToFile("[Payload] Payload is running without crashes!");
-        
+        LogToFile("[Payload] JNI attached, calling Crucifix.init()...");
+
+        // Find the Crucifix class
+        jclass crucifixClass = g_env->FindClass("com/crucifix/client/Crucifix");
+        if (!crucifixClass) {
+            LogToFile("[Payload] Could not find Crucifix class!");
+            LogToFile("[Payload] Make sure CrucifixPayload.jar is loaded in the classpath");
+            CleanupJNI();
+            return 1;
+        }
+
+        LogToFile("[Payload] Found Crucifix class");
+
+        // Get the static init() method
+        jmethodID initMethod = g_env->GetStaticMethodID(crucifixClass, "init", "()V");
+        if (!initMethod) {
+            LogToFile("[Payload] Could not find Crucifix.init() method!");
+            CleanupJNI();
+            return 1;
+        }
+
+        LogToFile("[Payload] Found Crucifix.init() method, calling it...");
+
+        // Call it
+        g_env->CallStaticVoidMethod(crucifixClass, initMethod);
+        LogToFile("[Payload] Crucifix.init() called!");
+
+        // Check for exceptions
+        if (g_env->ExceptionCheck()) {
+            LogToFile("[Payload] Exception occurred in Crucifix.init()!");
+            g_env->ExceptionDescribe();
+            g_env->ExceptionClear();
+        } else {
+            LogToFile("[Payload] Crucifix.init() completed successfully!");
+        }
+
         // Keep thread alive to prove stability
         for (int i = 0; i < 30; i++)
         {
@@ -139,7 +173,7 @@ DWORD WINAPI InjectionThread(LPVOID lpParam)
                 LogToFile("[Payload] Still running... (" + std::to_string(30 - i) + "s remaining)");
             }
         }
-        
+
         LogToFile("[Payload] Test complete, cleaning up...");
     }
     else

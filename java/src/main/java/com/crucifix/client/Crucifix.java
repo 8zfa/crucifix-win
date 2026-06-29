@@ -49,8 +49,12 @@ public class Crucifix {
     
     public static void init() {
         System.out.println("[CRUCIFIX] init() called from JVMTI");
-        
+
         try {
+            System.out.println("[CRUCIFIX] Loading native library...");
+            System.loadLibrary("CrucifixDLL");
+            System.out.println("[CRUCIFIX] Native library loaded successfully!");
+
             Crucifix inst = getInstance();
             
             System.out.println("[CRUCIFIX] Waiting 5 seconds for Lunar to fully load...");

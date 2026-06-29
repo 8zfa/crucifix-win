@@ -87,18 +87,18 @@ public class CommandManager {
             }
             
             if (args.length < 3 || args[2].equalsIgnoreCase("none")) {
-                module.setKeybind(0);
+                module.setKeyBind(0);
                 sendChatMessage("§aUnbound " + moduleName);
             } else {
                 String keyName = args[2].toUpperCase();
                 int keyCode = getKeyCode(keyName);
-                
+
                 if (keyCode == -1) {
                     sendChatMessage("§cInvalid key: " + keyName);
                     return;
                 }
-                
-                module.setKeybind(keyCode);
+
+                module.setKeyBind(keyCode);
                 sendChatMessage("§aBound " + moduleName + " to " + keyName);
             }
         }

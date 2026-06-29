@@ -112,49 +112,50 @@ public class LunarBridge {
                 } catch (ClassNotFoundException e) {}
             }
             
-            // METHOD 3: Scan all loaded classes
-            System.out.println("[LunarBridge] Scanning loaded classes...");
+            // METHOD 3: Use context classloader to find Minecraft
+            System.out.println("[LunarBridge] Using context classloader...");
             try {
-                Method getAllLoadedClasses = ClassLoader.class.getDeclaredMethod("getAllLoadedClasses");
-                getAllLoadedClasses.setAccessible(true);
-                Class<?>[] allClasses = (Class<?>[]) getAllLoadedClasses.invoke(null);
-                
-                System.out.println("[LunarBridge] Found " + allClasses.length + " loaded classes");
-                int checked = 0;
-                for (Class<?> c : allClasses) {
-                    String name = c.getName();
-                    if (name.contains("moonsworth") || name.contains("lunar") || 
-                        name.equalsIgnoreCase("net.minecraft.client.Minecraft")) {
-                        checked++;
-                        // Try to get instance
+                ClassLoader cl = Thread.currentThread().getContextClassLoader();
+                String[] classesToTry = {"ave", "blt", "net.minecraft.client.Minecraft"};
+
+                for (String name : classesToTry) {
+                    try {
+                        Class<?> clazz = Class.forName(name, true, cl);
+                        System.out.println("[LunarBridge] Found via context classloader: " + name);
+
+                        // Try getMinecraft()
                         try {
-                            for (Method m : c.getMethods()) {
-                                if (m.getParameterCount() == 0 && 
-                                    java.lang.reflect.Modifier.isStatic(m.getModifiers())) {
-                                    String mName = m.getName().toLowerCase();
-                                    if (mName.contains("getinstance") || 
-                                        mName.contains("getmc") || 
-                                        mName.contains("getminecraft")) {
-                                        try {
-                                            Object result = m.invoke(null);
-                                            if (result != null) {
-                                                minecraftInstance = result;
-                                                minecraftClass = result.getClass();
-                                                initialized = true;
-                                                foundMethod = "Scan: " + m.getName();
-                                                System.out.println("[LunarBridge] Found via: " + m.getName());
-                                                return true;
-                                            }
-                                        } catch (Exception e) {}
-                                    }
-                                }
+                            Method m = clazz.getMethod("getMinecraft");
+                            Object mc = m.invoke(null);
+                            if (mc != null) {
+                                minecraftInstance = mc;
+                                minecraftClass = mc.getClass();
+                                initialized = true;
+                                foundMethod = "ContextClassLoader.getMinecraft()";
+                                System.out.println("[LunarBridge] Got Minecraft via context classloader getMinecraft()");
+                                return true;
                             }
                         } catch (Exception e) {}
+
+                        // Try getInstance()
+                        try {
+                            Method m = clazz.getMethod("getInstance");
+                            Object mc = m.invoke(null);
+                            if (mc != null) {
+                                minecraftInstance = mc;
+                                minecraftClass = mc.getClass();
+                                initialized = true;
+                                foundMethod = "ContextClassLoader.getInstance()";
+                                System.out.println("[LunarBridge] Got Minecraft via context classloader getInstance()");
+                                return true;
+                            }
+                        } catch (Exception e) {}
+                    } catch (ClassNotFoundException e) {
+                        System.out.println("[LunarBridge] Class not found via context classloader: " + name);
                     }
                 }
-                System.out.println("[LunarBridge] Checked " + checked + " candidate classes");
             } catch (Exception e) {
-                System.out.println("[LunarBridge] Scan failed: " + e.getMessage());
+                System.out.println("[LunarBridge] Context classloader scan failed: " + e.getMessage());
             }
             
             System.out.println("[LunarBridge] Failed to find Minecraft");

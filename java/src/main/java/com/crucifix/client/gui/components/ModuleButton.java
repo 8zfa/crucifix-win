@@ -82,7 +82,7 @@ public class ModuleButton {
         g2d.drawString(module.getName(), 8, 17);
         
         // Draw keybind
-        String keybindText = getKeybindName(module.getKeybind());
+        String keybindText = getKeybindName(module.getKeyBind());
         g2d.setFont(new Font("Segoe UI", Font.PLAIN, 10));
         FontMetrics fm = g2d.getFontMetrics();
         int keybindWidth = fm.stringWidth(keybindText);

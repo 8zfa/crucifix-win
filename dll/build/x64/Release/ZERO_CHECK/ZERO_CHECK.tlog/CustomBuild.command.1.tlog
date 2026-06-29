@@ -1,0 +1,10 @@
+^C:\USERS\RAW\DESKTOP\CRUCIFIX.WIN\DLL\BUILD\CMAKEFILES\5D00100762133FBE4EC5591F416F8F10\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/raw/Desktop/crucifix.win/dll -BC:/Users/raw/Desktop/crucifix.win/dll/build --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file C:/Users/raw/Desktop/crucifix.win/dll/build/CrucifixDLL.slnx
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

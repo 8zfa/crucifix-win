@@ -1,0 +1,3 @@
+C:/Users/raw/Desktop/crucifix.win/dll/build/CMakeFiles/CrucifixDLL.dir
+C:/Users/raw/Desktop/crucifix.win/dll/build/CMakeFiles/ALL_BUILD.dir
+C:/Users/raw/Desktop/crucifix.win/dll/build/CMakeFiles/ZERO_CHECK.dir

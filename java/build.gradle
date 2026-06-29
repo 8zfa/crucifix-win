@@ -1,0 +1,46 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+group = 'com.crucifix'
+version = '1.0.0'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // JSON serialization
+    implementation 'com.google.code.gson:gson:2.8.9'
+    
+    // ASM for bytecode manipulation
+    implementation 'org.ow2.asm:asm:9.4'
+    implementation 'org.ow2.asm:asm-commons:9.4'
+    
+    // Minecraft mappings (would be replaced with actual MCP mappings in production)
+    // implementation 'de.oceanlabs.mcp:mcp_stable:1.8.9'
+}
+
+application {
+    mainClass = 'com.crucifix.client.Crucifix'
+}
+
+jar {
+    manifest {
+        attributes(
+            'Main-Class': 'com.crucifix.client.Crucifix',
+            'Implementation-Title': 'Crucifix',
+            'Implementation-Version': version
+        )
+    }
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}

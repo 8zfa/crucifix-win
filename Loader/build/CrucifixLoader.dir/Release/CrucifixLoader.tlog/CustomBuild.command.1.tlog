@@ -1,0 +1,10 @@
+^C:\USERS\RAW\DESKTOP\CRUCIFIX.WIN\LOADER\CMAKELISTS.TXT
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/raw/Desktop/crucifix.win/Loader -BC:/Users/raw/Desktop/crucifix.win/Loader/build --check-stamp-file C:/Users/raw/Desktop/crucifix.win/Loader/build/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

@@ -1,0 +1,3 @@
+C:/Users/raw/Desktop/crucifix.win/Payload/build/CMakeFiles/CrucifixPayload.dir
+C:/Users/raw/Desktop/crucifix.win/Payload/build/CMakeFiles/ALL_BUILD.dir
+C:/Users/raw/Desktop/crucifix.win/Payload/build/CMakeFiles/ZERO_CHECK.dir

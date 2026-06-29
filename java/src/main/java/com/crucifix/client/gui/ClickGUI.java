@@ -37,6 +37,18 @@ public class ClickGUI {
         return instance;
     }
     
+    public Theme getCurrentTheme() {
+        return theme;
+    }
+    
+    public boolean isOpen() {
+        return open;
+    }
+    
+    public void setOpen(boolean open) {
+        this.open = open;
+    }
+    
     // This is called from the wglSwapBuffers hook
     public void render() {
         if (!open) return;

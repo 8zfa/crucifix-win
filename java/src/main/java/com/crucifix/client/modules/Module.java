@@ -155,6 +155,23 @@ public abstract class Module {
         return value instanceof Long ? (Long) value : 0L;
     }
     
+    // Aliases for backward compatibility
+    protected Object getField(Object target, String fieldName) {
+        return getFieldValue(target, fieldName);
+    }
+    
+    protected void setField(Object target, String fieldName, Object value) {
+        setFieldValue(target, fieldName, value);
+    }
+    
+    protected Object getMinecraft() {
+        return minecraftInstance;
+    }
+    
+    public int getKeyBind() {
+        return keyBind;
+    }
+    
     // Override these
     public void onEnable() {}
     public void onDisable() {}

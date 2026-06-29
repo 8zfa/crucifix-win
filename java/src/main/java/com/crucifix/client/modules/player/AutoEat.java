@@ -34,7 +34,7 @@ public class AutoEat extends Module {
                 Integer foodLevel = (Integer) getField(foodStats, "foodLevel");
                 if (foodLevel != null && foodLevel < (int) hunger) {
                     // Auto eat would trigger here
-                    callMethod(player, "setItemInUse", new Class<?>[]{Object.class, int.class}, null, 0);
+                    // callMethod(player, "setItemInUse", new Class<?>[]{Object.class, int.class}, null, 0);
                 }
             }
         } catch (Exception e) {

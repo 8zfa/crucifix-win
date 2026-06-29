@@ -56,6 +56,7 @@ add_library(CrucifixDLL SHARED
     HookManager.cpp
     ResourceLoader.cpp
     keyboard_hook.cpp
+    LogWindow.cpp
     hotspot/hotspot.cpp
     modules/ModuleManager.cpp
     gui/ClickGUI.cpp

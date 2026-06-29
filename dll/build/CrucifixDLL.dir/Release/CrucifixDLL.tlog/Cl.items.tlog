@@ -4,6 +4,7 @@ C:\Users\raw\Desktop\crucifix.win\dll\JVMTIHelper.cpp;C:\Users\raw\Desktop\cruci
 C:\Users\raw\Desktop\crucifix.win\dll\HookManager.cpp;C:\Users\raw\Desktop\crucifix.win\dll\build\CrucifixDLL.dir\Release\HookManager.obj
 C:\Users\raw\Desktop\crucifix.win\dll\ResourceLoader.cpp;C:\Users\raw\Desktop\crucifix.win\dll\build\CrucifixDLL.dir\Release\ResourceLoader.obj
 C:\Users\raw\Desktop\crucifix.win\dll\keyboard_hook.cpp;C:\Users\raw\Desktop\crucifix.win\dll\build\CrucifixDLL.dir\Release\keyboard_hook.obj
+C:\Users\raw\Desktop\crucifix.win\dll\LogWindow.cpp;C:\Users\raw\Desktop\crucifix.win\dll\build\CrucifixDLL.dir\Release\LogWindow.obj
 C:\Users\raw\Desktop\crucifix.win\dll\hotspot\hotspot.cpp;C:\Users\raw\Desktop\crucifix.win\dll\build\CrucifixDLL.dir\Release\hotspot.obj
 C:\Users\raw\Desktop\crucifix.win\dll\modules\ModuleManager.cpp;C:\Users\raw\Desktop\crucifix.win\dll\build\CrucifixDLL.dir\Release\ModuleManager.obj
 C:\Users\raw\Desktop\crucifix.win\dll\gui\ClickGUI.cpp;C:\Users\raw\Desktop\crucifix.win\dll\build\CrucifixDLL.dir\Release\ClickGUI.obj

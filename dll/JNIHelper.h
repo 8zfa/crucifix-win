@@ -16,3 +16,6 @@ void FireKeyEvent(int keyCode, bool pressed);
 void FireRenderEvent(float partialTicks);
 void FireUpdateEvent();
 void FirePacketEvent(void* packet, bool cancelled);
+
+// Native method registration
+void RegisterNativeMethods(JNIEnv* env);

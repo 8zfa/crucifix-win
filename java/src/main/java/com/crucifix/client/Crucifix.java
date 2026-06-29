@@ -47,6 +47,9 @@ public class Crucifix {
     private static int retryCount = 0;
     private static final int MAX_RETRIES = 10;
     
+    // Native method to notify C++ that Java initialization is complete
+    private static native void setInitialized();
+    
     public static void init() {
         if (initAttempted) {
             System.out.println("[CRUCIFIX] init() already called, skipping");
@@ -117,9 +120,12 @@ public class Crucifix {
             }
         }
         
-        if (!initialized) {
-            System.out.println("[CRUCIFIX] FAILED TO INITIALIZE AFTER " + MAX_RETRIES + " ATTEMPTS");
-        }
+                if (!initialized) {
+                    System.out.println("[CRUCIFIX] FAILED TO INITIALIZE AFTER " + MAX_RETRIES + " ATTEMPTS");
+                } else {
+                    System.out.println("[CRUCIFIX] Initialization complete!");
+                    setInitialized();
+                }
     }
     
     /**

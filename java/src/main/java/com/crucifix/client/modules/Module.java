@@ -104,6 +104,57 @@ public abstract class Module {
         }
     }
     
+    protected Object callMethod(Object target, String methodName, Object... args) {
+        try {
+            Class<?>[] paramTypes = new Class[args.length];
+            for (int i = 0; i < args.length; i++) {
+                paramTypes[i] = args[i].getClass();
+            }
+            
+            java.lang.reflect.Method method = target.getClass().getMethod(methodName, paramTypes);
+            method.setAccessible(true);
+            return method.invoke(target, args);
+        } catch (Exception e) {
+            // Try to find method without exact types
+            try {
+                for (java.lang.reflect.Method m : target.getClass().getMethods()) {
+                    if (m.getName().equals(methodName) && m.getParameterCount() == args.length) {
+                        m.setAccessible(true);
+                        return m.invoke(target, args);
+                    }
+                }
+            } catch (Exception ex) {
+                System.out.println("[Module] Could not call method " + methodName + ": " + ex.getMessage());
+            }
+            return null;
+        }
+    }
+    
+    protected boolean getBooleanField(Object target, String fieldName) {
+        Object value = getFieldValue(target, fieldName);
+        return value instanceof Boolean && (Boolean) value;
+    }
+    
+    protected float getFloatField(Object target, String fieldName) {
+        Object value = getFieldValue(target, fieldName);
+        return value instanceof Float ? (Float) value : 0f;
+    }
+    
+    protected double getDoubleField(Object target, String fieldName) {
+        Object value = getFieldValue(target, fieldName);
+        return value instanceof Double ? (Double) value : 0.0;
+    }
+    
+    protected int getIntField(Object target, String fieldName) {
+        Object value = getFieldValue(target, fieldName);
+        return value instanceof Integer ? (Integer) value : 0;
+    }
+    
+    protected long getLongField(Object target, String fieldName) {
+        Object value = getFieldValue(target, fieldName);
+        return value instanceof Long ? (Long) value : 0L;
+    }
+    
     // Override these
     public void onEnable() {}
     public void onDisable() {}

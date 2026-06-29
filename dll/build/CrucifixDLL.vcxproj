@@ -375,6 +375,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClCompile Include="C:\Users\raw\Desktop\crucifix.win\dll\HookManager.cpp" />
     <ClCompile Include="C:\Users\raw\Desktop\crucifix.win\dll\ResourceLoader.cpp" />
     <ClCompile Include="C:\Users\raw\Desktop\crucifix.win\dll\keyboard_hook.cpp" />
+    <ClCompile Include="C:\Users\raw\Desktop\crucifix.win\dll\LogWindow.cpp" />
     <ClCompile Include="C:\Users\raw\Desktop\crucifix.win\dll\hotspot\hotspot.cpp" />
     <ClCompile Include="C:\Users\raw\Desktop\crucifix.win\dll\modules\ModuleManager.cpp" />
     <ClCompile Include="C:\Users\raw\Desktop\crucifix.win\dll\gui\ClickGUI.cpp" />

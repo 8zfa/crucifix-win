@@ -8,6 +8,7 @@
 #include "ResourceLoader.h"
 #include "modules/ModuleManager.h"
 #include "gui/ClickGUI.h"
+#include "LogWindow.h"
 
 // Forward declarations for wglSwapBuffers hook
 void Hook_wglSwapBuffers();
@@ -17,10 +18,17 @@ HMODULE g_hModule = nullptr;
 JavaVM* g_jvm = nullptr;
 JNIEnv* g_env = nullptr;
 bool g_initialized = false;
+bool g_JavaInitialized = false;
 HHOOK g_keyboardHook = nullptr;
 bool g_menuOpen = false;
 HWND g_minecraftWindow = nullptr;
 bool g_shouldExit = false;
+
+// JNI method to set Java initialization flag
+extern "C" JNIEXPORT void JNICALL Java_com_crucifix_client_Crucifix_setInitialized(JNIEnv* env, jclass cls) {
+    g_JavaInitialized = true;
+    LogInfo("Java initialization complete!");
+}
 
 // Keyboard hook callback
 LRESULT CALLBACK KeyboardHook(int nCode, WPARAM wParam, LPARAM lParam)
@@ -159,6 +167,10 @@ void LogToFile(const std::string& message)
 
 void InitializeCrucifix()
 {
+    // Create separate log window
+    CreateLogWindow();
+    LogInfo("Starting initialization in background thread...");
+    
     LogToFile("[CRUCIFIX] Starting initialization in background thread...");
     
     // Wait 10 seconds for Lunar Client to fully initialize (proven working delay)
@@ -167,24 +179,29 @@ void InitializeCrucifix()
     try
     {
         // Initialize JNI and attach to JVM
+        LogInfo("Attempting to attach to JVM...");
         LogToFile("[CRUCIFIX] Attempting to attach to JVM...");
         bool jniInitialized = InitializeJNI();
         
         if (jniInitialized && g_env)
         {
+            LogInfo("JVM attached successfully!");
             LogToFile("[CRUCIFIX] JVM attached successfully!");
             
             // Try to load JAR via addURL method
+            LogInfo("Attempting to load JAR via addURL...");
             LogToFile("[CRUCIFIX] Attempting to load JAR via addURL...");
             std::string jarPath = "C:\\Users\\raw\\Desktop\\crucifix.win\\deploy\\CrucifixPayload.jar";
             bool jarLoaded = LoadJavaPayload(jarPath);
             
             if (jarLoaded)
             {
+                LogInfo("JAR loaded successfully via addURL");
                 LogToFile("[CRUCIFIX] JAR loaded successfully via addURL");
             }
             else
             {
+                LogWarning("JAR loading via addURL failed, trying direct class loading");
                 LogToFile("[CRUCIFIX] JAR loading via addURL failed, trying direct class loading");
                 
                 // Try to call Java init method using context classloader
@@ -229,6 +246,10 @@ void InitializeCrucifix()
                                 else
                                 {
                                     LogToFile("[CRUCIFIX] Java init() called successfully");
+                                    LogInfo("Java init() called successfully");
+                                    
+                                    // Register native methods
+                                    RegisterNativeMethods(g_env);
                                 }
                             }
                             else

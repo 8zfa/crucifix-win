@@ -1,9 +1,10 @@
 #include <windows.h>
 #include <stdio.h>
 #include <jni.h>
+#include "LogWindow.h"
 
 extern JavaVM* g_jvm;
-extern bool g_initialized;
+extern bool g_JavaInitialized;
 
 // Keyboard hook procedure
 LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
@@ -15,9 +16,9 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
             
             // RSHIFT key to open ClickGUI
             if (key == VK_RSHIFT) {
-                printf("[Keyboard] RSHIFT pressed - toggling ClickGUI\n");
+                LogInfo("RSHIFT pressed - toggling ClickGUI");
                 
-                if (g_jvm != nullptr && g_initialized) {
+                if (g_jvm != nullptr && g_JavaInitialized) {
                     JNIEnv* env;
                     if (g_jvm->AttachCurrentThread((void**)&env, nullptr) == JNI_OK) {
                         jclass crucifixClass = env->FindClass("com/crucifix/client/Crucifix");
@@ -29,19 +30,19 @@ LRESULT CALLBACK KeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
                             );
                             if (toggleMethod != nullptr) {
                                 env->CallStaticVoidMethod(crucifixClass, toggleMethod);
-                                printf("[Keyboard] Called Crucifix.toggleClickGUI()\n");
+                                LogInfo("Called Crucifix.toggleClickGUI()");
                             } else {
-                                printf("[Keyboard] Could not find toggleClickGUI method\n");
+                                LogError("Could not find toggleClickGUI method");
                             }
                         } else {
-                            printf("[Keyboard] Could not find Crucifix class\n");
+                            LogError("Could not find Crucifix class");
                         }
                         g_jvm->DetachCurrentThread();
                     } else {
-                        printf("[Keyboard] Could not attach to JVM\n");
+                        LogError("Could not attach to JVM");
                     }
                 } else {
-                    printf("[Keyboard] JVM not ready (g_jvm=%p, g_initialized=%d)\n", g_jvm, g_initialized);
+                    LogWarning("JVM not ready");
                 }
                 
                 return 1; // Prevent default behavior

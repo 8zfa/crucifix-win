@@ -6,9 +6,11 @@
 #include <vector>
 #include <psapi.h>
 #include <algorithm>
+#include "LogWindow.h"
 
 extern JavaVM* g_jvm;
 extern JNIEnv* g_env;
+extern bool g_JavaInitialized;
 
 // Log to file helper
 void LogJNI(const std::string& message)
@@ -480,5 +482,34 @@ void FirePacketEvent(void* packet, bool cancelled)
         g_env->DeleteLocalRef(crucifixClass);
     } catch (...) {
         // Ignore
+    }
+}
+
+// Native method implementation for ClickGUI.isImGuiAvailable()
+extern bool g_ImGuiAvailable;
+
+JNIEXPORT jboolean JNICALL Java_com_crucifix_client_gui_ClickGUI_isImGuiAvailable(JNIEnv* env, jobject obj) {
+    LogDebug(("isImGuiAvailable() called - returning " + std::to_string(g_ImGuiAvailable)).c_str());
+    return g_ImGuiAvailable ? JNI_TRUE : JNI_FALSE;
+}
+
+// Register native methods
+void RegisterNativeMethods(JNIEnv* env) {
+    if (!env) return;
+    
+    // Register ClickGUI native methods
+    jclass clickGUIClass = env->FindClass("com/crucifix/client/gui/ClickGUI");
+    if (clickGUIClass != nullptr) {
+        JNINativeMethod methods[] = {
+            {"isImGuiAvailable", "()Z", (void*)Java_com_crucifix_client_gui_ClickGUI_isImGuiAvailable}
+        };
+        jint result = env->RegisterNatives(clickGUIClass, methods, 1);
+        if (result == JNI_OK) {
+            LogInfo("Registered ClickGUI native methods");
+        } else {
+            LogError("Failed to register ClickGUI native methods");
+        }
+    } else {
+        LogError("Could not find ClickGUI class");
     }
 }

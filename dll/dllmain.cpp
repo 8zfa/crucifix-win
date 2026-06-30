@@ -98,8 +98,8 @@ void EventLoop()
         
         // Initialize C++ modules
         std::cout << "[CRUCIFIX] About to initialize modules" << std::endl;
-        ModuleManager::getInstance().init();
-        std::cout << "[CRUCIFIX] Modules initialized" << std::endl;
+        // ModuleManager::getInstance().init(); // TODO: Implement ModuleManager
+        std::cout << "[CRUCIFIX] Modules initialized (stub)" << std::endl;
         
         // Install keyboard hook
         std::cout << "[CRUCIFIX] About to install keyboard hook" << std::endl;
@@ -136,7 +136,7 @@ void EventLoop()
             DWORD currentTime = GetTickCount();
             if (currentTime - lastUpdateTime >= 50) // 50ms = 20 ticks per second
             {
-                ModuleManager::getInstance().update();
+                // ModuleManager::getInstance().update(); // TODO: Implement ModuleManager
                 lastUpdateTime = currentTime;
             }
         }

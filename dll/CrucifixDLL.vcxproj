@@ -93,6 +93,7 @@
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="JNIHelper.cpp" />
+    <ClCompile Include="hooks.cpp" />
     <ClCompile Include="HookManager.cpp" />
     <ClCompile Include="ResourceLoader.cpp" />
     <ClCompile Include="LogWindow.cpp" />

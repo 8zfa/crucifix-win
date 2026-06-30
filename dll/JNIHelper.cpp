@@ -489,19 +489,40 @@ void FirePacketEvent(void* packet, bool cancelled)
 // Native method implementation for ClickGUI.isImGuiAvailable()
 extern bool g_ImGuiAvailable;
 
+static JavaVM* g_jvm_bridge = nullptr;
+static JNIEnv* g_env_bridge = nullptr;
+
+// Helper to get JNIEnv for hooks
+JNIEnv* getJNIEnv() {
+    if (g_jvm_bridge == nullptr) return nullptr;
+    JNIEnv* env;
+    jint rc = g_jvm_bridge->GetEnv((void**)&env, JNI_VERSION_1_8);
+    if (rc == JNI_EDETACHED) {
+        g_jvm_bridge->AttachCurrentThread((void**)&env, nullptr);
+    }
+    return env;
+}
+
+// Set JVM pointer for hooks
+void setJVM(JavaVM* jvm) {
+    g_jvm_bridge = jvm;
+}
+
+// ClickGUI JNI functions (extern "C" to prevent name mangling)
 extern "C" {
 
 JNIEXPORT jboolean JNICALL Java_com_crucifix_client_gui_ClickGUI_isImGuiAvailable(JNIEnv* env, jobject obj) {
-    printf("[JNI] isImGuiAvailable() called - g_ImGuiAvailable = %d\n", g_ImGuiAvailable);
-    LogDebug(("isImGuiAvailable() called - returning " + std::to_string(g_ImGuiAvailable)).c_str());
-    return g_ImGuiAvailable ? JNI_TRUE : JNI_FALSE;
+    bool available = (ImGui::GetCurrentContext() != nullptr);
+    printf("[DLL] isImGuiAvailable: %s\n", available ? "true" : "false");
+    FILE* f = fopen("C:\\crucifix_dll_isimgui.txt", "w");
+    if (f) { fprintf(f, "isImGuiAvailable called, available=%d\n", available); fclose(f); }
+    return available ? JNI_TRUE : JNI_FALSE;
 }
 
-// ImGui rendering methods
 JNIEXPORT void JNICALL Java_com_crucifix_client_gui_ClickGUI_nBegin(JNIEnv* env, jobject obj, jstring name, jint flags) {
-    const char* nameStr = env->GetStringUTFChars(name, nullptr);
-    ImGui::Begin(nameStr, nullptr, flags);
-    env->ReleaseStringUTFChars(name, nameStr);
+    const char* cname = env->GetStringUTFChars(name, nullptr);
+    ImGui::Begin(cname, nullptr, flags);
+    env->ReleaseStringUTFChars(name, cname);
 }
 
 JNIEXPORT void JNICALL Java_com_crucifix_client_gui_ClickGUI_nEnd(JNIEnv* env, jobject obj) {
@@ -509,9 +530,9 @@ JNIEXPORT void JNICALL Java_com_crucifix_client_gui_ClickGUI_nEnd(JNIEnv* env, j
 }
 
 JNIEXPORT void JNICALL Java_com_crucifix_client_gui_ClickGUI_nText(JNIEnv* env, jobject obj, jstring text) {
-    const char* textStr = env->GetStringUTFChars(text, nullptr);
-    ImGui::Text("%s", textStr);
-    env->ReleaseStringUTFChars(text, textStr);
+    const char* ctext = env->GetStringUTFChars(text, nullptr);
+    ImGui::Text("%s", ctext);
+    env->ReleaseStringUTFChars(text, ctext);
 }
 
 JNIEXPORT void JNICALL Java_com_crucifix_client_gui_ClickGUI_nSeparator(JNIEnv* env, jobject obj) {
@@ -519,24 +540,24 @@ JNIEXPORT void JNICALL Java_com_crucifix_client_gui_ClickGUI_nSeparator(JNIEnv* 
 }
 
 JNIEXPORT jboolean JNICALL Java_com_crucifix_client_gui_ClickGUI_nCollapsingHeader(JNIEnv* env, jobject obj, jstring label) {
-    const char* labelStr = env->GetStringUTFChars(label, nullptr);
-    bool result = ImGui::CollapsingHeader(labelStr);
-    env->ReleaseStringUTFChars(label, labelStr);
+    const char* clabel = env->GetStringUTFChars(label, nullptr);
+    bool result = ImGui::CollapsingHeader(clabel);
+    env->ReleaseStringUTFChars(label, clabel);
     return result ? JNI_TRUE : JNI_FALSE;
 }
 
 JNIEXPORT jboolean JNICALL Java_com_crucifix_client_gui_ClickGUI_nCheckbox(JNIEnv* env, jobject obj, jstring label, jboolean value) {
-    const char* labelStr = env->GetStringUTFChars(label, nullptr);
+    const char* clabel = env->GetStringUTFChars(label, nullptr);
     bool val = (value == JNI_TRUE);
-    bool result = ImGui::Checkbox(labelStr, &val);
-    env->ReleaseStringUTFChars(label, labelStr);
+    bool result = ImGui::Checkbox(clabel, &val);
+    env->ReleaseStringUTFChars(label, clabel);
     return result ? JNI_TRUE : JNI_FALSE;
 }
 
 JNIEXPORT jboolean JNICALL Java_com_crucifix_client_gui_ClickGUI_nButton(JNIEnv* env, jobject obj, jstring label) {
-    const char* labelStr = env->GetStringUTFChars(label, nullptr);
-    bool result = ImGui::Button(labelStr);
-    env->ReleaseStringUTFChars(label, labelStr);
+    const char* clabel = env->GetStringUTFChars(label, nullptr);
+    bool result = ImGui::Button(clabel);
+    env->ReleaseStringUTFChars(label, clabel);
     return result ? JNI_TRUE : JNI_FALSE;
 }
 
@@ -574,56 +595,29 @@ JNIEXPORT void JNICALL Java_com_crucifix_client_gui_ClickGUI_nSetNextWindowBgAlp
 
 } // extern "C"
 
-// Register all ClickGUI native methods
+// Register ClickGUI native methods
 void RegisterClickGUINatives(JNIEnv* env) {
-    printf("[JNI] Registering ClickGUI natives...\n");
-    LogInfo("Registering ClickGUI natives...");
-    
-    jclass clickGUIClass = env->FindClass("com/crucifix/client/gui/ClickGUI");
-    if (clickGUIClass == nullptr) {
-        printf("[JNI] ERROR: Could not find ClickGUI class!\n");
-        LogError("Could not find ClickGUI class");
-        if (env->ExceptionCheck()) {
-            env->ExceptionDescribe();
-            env->ExceptionClear();
-        }
-        return;
+    printf("[JNI] RegisterClickGUINatives called (no-op, functions are already extern C)\n");
+}
+
+// Stub ModuleManager class to match dllmain expectations
+class ModuleManager {
+private:
+    static ModuleManager* instance;
+    ModuleManager() {}
+public:
+    static ModuleManager& getInstance() {
+        if (!instance) instance = new ModuleManager();
+        return *instance;
     }
-    printf("[JNI] Found ClickGUI class\n");
-    LogInfo("Found ClickGUI class");
-    
-    JNINativeMethod methods[] = {
-        {(char*)"isImGuiAvailable", (char*)"()Z", (void*)Java_com_crucifix_client_gui_ClickGUI_isImGuiAvailable},
-        {(char*)"nBegin", (char*)"(Ljava/lang/String;I)V", (void*)Java_com_crucifix_client_gui_ClickGUI_nBegin},
-        {(char*)"nEnd", (char*)"()V", (void*)Java_com_crucifix_client_gui_ClickGUI_nEnd},
-        {(char*)"nText", (char*)"(Ljava/lang/String;)V", (void*)Java_com_crucifix_client_gui_ClickGUI_nText},
-        {(char*)"nSeparator", (char*)"()V", (void*)Java_com_crucifix_client_gui_ClickGUI_nSeparator},
-        {(char*)"nCollapsingHeader", (char*)"(Ljava/lang/String;)Z", (void*)Java_com_crucifix_client_gui_ClickGUI_nCollapsingHeader},
-        {(char*)"nCheckbox", (char*)"(Ljava/lang/String;Z)Z", (void*)Java_com_crucifix_client_gui_ClickGUI_nCheckbox},
-        {(char*)"nButton", (char*)"(Ljava/lang/String;)Z", (void*)Java_com_crucifix_client_gui_ClickGUI_nButton},
-        {(char*)"nSameLine", (char*)"()V", (void*)Java_com_crucifix_client_gui_ClickGUI_nSameLine},
-        {(char*)"nPushStyleColor", (char*)"(IFFFF)V", (void*)Java_com_crucifix_client_gui_ClickGUI_nPushStyleColor},
-        {(char*)"nPopStyleColor", (char*)"()V", (void*)Java_com_crucifix_client_gui_ClickGUI_nPopStyleColor},
-        {(char*)"nPushStyleVar", (char*)"(IF)V", (void*)Java_com_crucifix_client_gui_ClickGUI_nPushStyleVar},
-        {(char*)"nPopStyleVar", (char*)"()V", (void*)Java_com_crucifix_client_gui_ClickGUI_nPopStyleVar},
-        {(char*)"nSetNextWindowSize", (char*)"(FF)V", (void*)Java_com_crucifix_client_gui_ClickGUI_nSetNextWindowSize},
-        {(char*)"nSetNextWindowPos", (char*)"(FF)V", (void*)Java_com_crucifix_client_gui_ClickGUI_nSetNextWindowPos},
-        {(char*)"nSetNextWindowBgAlpha", (char*)"(F)V", (void*)Java_com_crucifix_client_gui_ClickGUI_nSetNextWindowBgAlpha}
-    };
-    
-    int numMethods = sizeof(methods) / sizeof(methods[0]);
-    printf("[JNI] Registering %d methods...\n", numMethods);
-    
-    jint result = env->RegisterNatives(clickGUIClass, methods, numMethods);
-    if (result != JNI_OK) {
-        printf("[JNI] ERROR: RegisterNatives failed! Error code: %d\n", result);
-        LogError(("RegisterNatives failed! Error code: " + std::to_string(result)).c_str());
-        if (env->ExceptionCheck()) {
-            env->ExceptionDescribe();
-            env->ExceptionClear();
-        }
-    } else {
-        printf("[JNI] Successfully registered %d ClickGUI native methods!\n", numMethods);
-        LogInfo(("Successfully registered " + std::to_string(numMethods) + " ClickGUI native methods").c_str());
-    }
+    void init() { printf("[ModuleManager] init() called (stub)\n"); }
+    void update() { printf("[ModuleManager] update() called (stub)\n"); }
+};
+
+ModuleManager* ModuleManager::instance = nullptr;
+
+// Stub LoadJARViaJVMTI function
+bool LoadJARViaJVMTI(const std::string& jarPath) {
+    printf("[JNI] LoadJARViaJVMTI called for: %s (stub)\n", jarPath.c_str());
+    return true;
 }

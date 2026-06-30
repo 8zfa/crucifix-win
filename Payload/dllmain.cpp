@@ -4,18 +4,15 @@
 #include <fstream>
 #include <string>
 
-// Global variables
 HMODULE g_hModule = nullptr;
 JavaVM* g_jvm = nullptr;
 JNIEnv* g_env = nullptr;
 
-// Function pointer type for JNI_GetCreatedJavaVMs
 typedef jint (JNICALL *JNI_GetCreatedJavaVMsFunc)(JavaVM**, jsize, jsize*);
 
-// Log to file
-void LogToFile(const char* message)
+void LogToFile(const std::string& message)
 {
-    std::ofstream logFile("C:\\Users\\raw\\Desktop\\crucifix_payload.log", std::ios::app);
+    std::ofstream logFile("C:\\Users\\Public\\crucifix_payload.log", std::ios::app);
     if (logFile.is_open())
     {
         logFile << message << std::endl;
@@ -24,21 +21,14 @@ void LogToFile(const char* message)
     std::cout << message << std::endl;
 }
 
-void LogToFile(const std::string& message)
-{
-    LogToFile(message.c_str());
-}
-
-// Initialize JNI using ToadClient's approach
 bool InitializeJNI()
 {
     LogToFile("[Payload] Starting JNI initialization...");
-    
-    // Get jvm.dll handle
+
     HMODULE jvmModule = GetModuleHandleA("jvm.dll");
     if (!jvmModule)
     {
-        LogToFile("[Payload] jvm.dll not loaded, trying to load it...");
+        LogToFile("[Payload] jvm.dll not found in process, trying to load...");
         jvmModule = LoadLibraryA("jvm.dll");
         if (!jvmModule)
         {
@@ -46,143 +36,106 @@ bool InitializeJNI()
             return false;
         }
     }
-    
+
     LogToFile("[Payload] jvm.dll found");
-    
-    // Get JNI_GetCreatedJavaVMs function
-    JNI_GetCreatedJavaVMsFunc jniGetCreatedJavaVMs = (JNI_GetCreatedJavaVMsFunc)GetProcAddress(jvmModule, "JNI_GetCreatedJavaVMs");
+
+    JNI_GetCreatedJavaVMsFunc jniGetCreatedJavaVMs =
+        (JNI_GetCreatedJavaVMsFunc)GetProcAddress(jvmModule, "JNI_GetCreatedJavaVMs");
     if (!jniGetCreatedJavaVMs)
     {
         LogToFile("[Payload] Failed to get JNI_GetCreatedJavaVMs address");
         return false;
     }
-    
-    LogToFile("[Payload] JNI_GetCreatedJavaVMs function found");
-    
-    // Call JNI_GetCreatedJavaVMs
+
     jsize vmCount = 0;
     jint result = jniGetCreatedJavaVMs(&g_jvm, 1, &vmCount);
-    
-    if (result != JNI_OK)
+
+    if (result != JNI_OK || vmCount == 0 || !g_jvm)
     {
-        LogToFile("[Payload] JNI_GetCreatedJavaVMs returned error: " + std::to_string(result));
+        LogToFile("[Payload] No JVM found (count=" + std::to_string(vmCount) + " result=" + std::to_string(result) + ")");
         return false;
     }
-    
-    if (vmCount == 0)
-    {
-        LogToFile("[Payload] No JVM found (vmCount = 0)");
-        return false;
-    }
-    
-    if (!g_jvm)
-    {
-        LogToFile("[Payload] JVM pointer is null");
-        return false;
-    }
-    
-    LogToFile("[Payload] JVM found at: " + std::to_string(reinterpret_cast<uintptr_t>(g_jvm)));
-    
-    // Attach current thread
+
+    LogToFile("[Payload] JVM found, attaching thread...");
+
     result = g_jvm->AttachCurrentThread((void**)&g_env, nullptr);
-    if (result != JNI_OK)
+    if (result != JNI_OK || !g_env)
     {
-        LogToFile("[Payload] Failed to attach current thread, error: " + std::to_string(result));
+        LogToFile("[Payload] Failed to attach to JVM, error: " + std::to_string(result));
         return false;
     }
-    
-    if (!g_env)
-    {
-        LogToFile("[Payload] JNIEnv is null after attach");
-        return false;
-    }
-    
-    LogToFile("[Payload] Successfully attached to JVM");
-    LogToFile("[Payload] JNI initialization complete!");
+
+    LogToFile("[Payload] Successfully attached to JVM!");
     return true;
 }
 
-// Cleanup JNI
 void CleanupJNI()
 {
     if (g_jvm && g_env)
     {
-        LogToFile("[Payload] Detaching from JVM...");
         g_jvm->DetachCurrentThread();
         g_env = nullptr;
         g_jvm = nullptr;
     }
 }
 
-// Injection thread
 DWORD WINAPI InjectionThread(LPVOID lpParam)
 {
     LogToFile("[Payload] Injection thread started");
-    
-    // Wait 8-10 seconds for Lunar Client to fully initialize
-    LogToFile("[Payload] Waiting 10 seconds for Lunar Client to initialize...");
-    Sleep(10000);
-    
-    LogToFile("[Payload] Starting JNI initialization...");
-    
-    if (InitializeJNI())
+    LogToFile("[Payload] Waiting 15 seconds for Lunar to fully initialize...");
+    Sleep(15000);
+
+    if (!InitializeJNI())
     {
-        LogToFile("[Payload] === SUCCESS: JNI attachment confirmed ===");
-        LogToFile("[Payload] JNI attached, calling Crucifix.init()...");
+        LogToFile("[Payload] JNI initialization failed, exiting");
+        return 1;
+    }
 
-        // Find the Crucifix class
-        jclass crucifixClass = g_env->FindClass("com/crucifix/client/Crucifix");
-        if (!crucifixClass) {
-            LogToFile("[Payload] Could not find Crucifix class!");
-            LogToFile("[Payload] Make sure CrucifixPayload.jar is loaded in the classpath");
-            CleanupJNI();
-            return 1;
-        }
+    LogToFile("[Payload] Looking for Crucifix class...");
 
-        LogToFile("[Payload] Found Crucifix class");
-
-        // Get the static init() method
-        jmethodID initMethod = g_env->GetStaticMethodID(crucifixClass, "init", "()V");
-        if (!initMethod) {
-            LogToFile("[Payload] Could not find Crucifix.init() method!");
-            CleanupJNI();
-            return 1;
-        }
-
-        LogToFile("[Payload] Found Crucifix.init() method, calling it...");
-
-        // Call it
-        g_env->CallStaticVoidMethod(crucifixClass, initMethod);
-        LogToFile("[Payload] Crucifix.init() called!");
-
-        // Check for exceptions
+    jclass crucifixClass = g_env->FindClass("com/crucifix/client/Crucifix");
+    if (!crucifixClass)
+    {
+        LogToFile("[Payload] Could not find Crucifix class!");
+        LogToFile("[Payload] Make sure CrucifixLoader ran before launching Lunar");
         if (g_env->ExceptionCheck()) {
-            LogToFile("[Payload] Exception occurred in Crucifix.init()!");
             g_env->ExceptionDescribe();
             g_env->ExceptionClear();
-        } else {
-            LogToFile("[Payload] Crucifix.init() completed successfully!");
         }
+        CleanupJNI();
+        return 1;
+    }
 
-        // Keep thread alive to prove stability
-        for (int i = 0; i < 30; i++)
-        {
-            Sleep(1000);
-            if (i % 5 == 0)
-            {
-                LogToFile("[Payload] Still running... (" + std::to_string(30 - i) + "s remaining)");
-            }
+    LogToFile("[Payload] Found Crucifix class!");
+
+    jmethodID initMethod = g_env->GetStaticMethodID(crucifixClass, "init", "()V");
+    if (!initMethod)
+    {
+        LogToFile("[Payload] Could not find Crucifix.init() method!");
+        if (g_env->ExceptionCheck()) {
+            g_env->ExceptionDescribe();
+            g_env->ExceptionClear();
         }
+        CleanupJNI();
+        return 1;
+    }
 
-        LogToFile("[Payload] Test complete, cleaning up...");
+    LogToFile("[Payload] Calling Crucifix.init()...");
+    g_env->CallStaticVoidMethod(crucifixClass, initMethod);
+
+    if (g_env->ExceptionCheck())
+    {
+        LogToFile("[Payload] Exception thrown during Crucifix.init()!");
+        g_env->ExceptionDescribe();
+        g_env->ExceptionClear();
     }
     else
     {
-        LogToFile("[Payload] === FAILED: JNI initialization failed ===");
+        LogToFile("[Payload] Crucifix.init() completed successfully!");
     }
-    
+
     CleanupJNI();
-    LogToFile("[Payload] Injection thread exiting");
+    LogToFile("[Payload] Injection thread done");
     return 0;
 }
 
@@ -194,33 +147,28 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserv
     {
         g_hModule = hModule;
         DisableThreadLibraryCalls(hModule);
-        
-        // Clear log file
-        std::ofstream logFile("C:\\Users\\raw\\Desktop\\crucifix_payload.log", std::ios::trunc);
+
+        // Clear log
+        std::ofstream logFile("C:\\Users\\Public\\crucifix_payload.log", std::ios::trunc);
         logFile.close();
-        
+
         LogToFile("=== Crucifix Payload DLL Attached ===");
-        LogToFile("[Payload] Creating injection thread...");
-        
+
         HANDLE hThread = CreateThread(nullptr, 0, InjectionThread, nullptr, 0, nullptr);
         if (hThread)
         {
             CloseHandle(hThread);
-            LogToFile("[Payload] Injection thread created successfully");
+            LogToFile("[Payload] Injection thread created");
         }
         else
         {
-            LogToFile("[Payload] Failed to create injection thread");
+            LogToFile("[Payload] Failed to create injection thread!");
         }
-        
         break;
     }
     case DLL_PROCESS_DETACH:
-    {
-        LogToFile("[Payload] DLL detaching");
         CleanupJNI();
         break;
-    }
     }
     return TRUE;
 }

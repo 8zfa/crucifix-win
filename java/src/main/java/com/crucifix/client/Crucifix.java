@@ -48,38 +48,44 @@ public class Crucifix {
     }
     
     public static void init() {
-        System.out.println("[CRUCIFIX] init() called from JVMTI");
+        System.out.println("[CRUCIFIX] init() called");
 
         try {
-            System.out.println("[CRUCIFIX] Loading native library...");
-            System.loadLibrary("CrucifixDLL");
-            System.out.println("[CRUCIFIX] Native library loaded successfully!");
-
             Crucifix inst = getInstance();
-            
+
             System.out.println("[CRUCIFIX] Waiting 5 seconds for Lunar to fully load...");
             Thread.sleep(5000);
-            
+
             System.out.println("[CRUCIFIX] Initializing LunarBridge...");
             inst.lunarBridgeInitialized = LunarBridge.initialize();
-            
+
             if (inst.lunarBridgeInitialized) {
                 System.out.println("[CRUCIFIX] LunarBridge initialized!");
                 Object mc = LunarBridge.getMinecraft();
-                
+
                 if (mc != null) {
                     System.out.println("[CRUCIFIX] Got Minecraft: " + mc);
+
                     ModuleManager.initModules(mc);
                     inst.modulesInitialized = true;
                     System.out.println("[CRUCIFIX] Modules initialized!");
-                    
+
+                    // Load native DLL for ClickGUI
+                    System.out.println("[CRUCIFIX] Loading native library...");
+                    try {
+                        System.loadLibrary("CrucifixDLL");
+                        System.out.println("[CRUCIFIX] Native library loaded!");
+                    } catch (UnsatisfiedLinkError e) {
+                        System.out.println("[CRUCIFIX] Failed to load native library: " + e.getMessage());
+                    }
+
                     inst.clickGUI = ClickGUI.getInstance();
                     inst.clickGUIInitialized = true;
                     System.out.println("[CRUCIFIX] ClickGUI initialized!");
-                    
+
                     HUDManager.getInstance();
                     System.out.println("[CRUCIFIX] HUD initialized!");
-                    
+
                     System.out.println("[CRUCIFIX] ===== ALL SYSTEMS GO! =====");
                 } else {
                     System.out.println("[CRUCIFIX] Minecraft is null!");
@@ -89,20 +95,10 @@ public class Crucifix {
                 System.out.println("[CRUCIFIX] LunarBridge failed!");
                 scheduleRetry();
             }
-            
+
         } catch (Throwable t) {
-            System.out.println("[CRUCIFIX] Error: " + t.getMessage());
+            System.out.println("[CRUCIFIX] Error in init: " + t.getMessage());
             t.printStackTrace();
-            
-            try {
-                StringWriter sw = new StringWriter();
-                PrintWriter pw = new PrintWriter(sw);
-                t.printStackTrace(pw);
-                FileWriter fw = new FileWriter(System.getProperty("user.home") + "/crucifix_error.log");
-                fw.write(sw.toString());
-                fw.close();
-            } catch (Exception e) {}
-            
             scheduleRetry();
         }
     }

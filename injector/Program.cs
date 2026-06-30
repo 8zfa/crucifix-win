@@ -79,7 +79,7 @@ namespace CrucifixInjector
                 }
 
                 // Get DLL path
-                string dllPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "CrucifixDLL.dll");
+                string dllPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "CrucifixPayload.dll");
                 
                 if (!File.Exists(dllPath))
                 {

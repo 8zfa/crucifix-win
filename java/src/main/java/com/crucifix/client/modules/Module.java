@@ -181,6 +181,10 @@ public abstract class Module {
     public int getKeyBind() { return keyBind; }
     public void setKeyBind(int keyBind) { this.keyBind = keyBind; }
     public boolean isEnabled() { return enabled; }
+
+    // Aliases for backward compatibility
+    public void setKeybind(int key) { this.keyBind = key; }
+    public int getKeybind() { return keyBind; }
     
     public void toggle() {
         if (enabled) {
